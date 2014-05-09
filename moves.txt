@@ -1,0 +1,8 @@
+rla1
+nlb1
+blc1
+e4 d6
+d4 f6
+c3 g6
+d4 e5*
+e1 g1 h1 f1

@@ -2,11 +2,13 @@ package pieces;
 
 public abstract class Piece {
 	
-	protected boolean isEvil;
+	public final boolean isEvil;
 	
 	public Piece(boolean isEvil){
 		this.isEvil = isEvil;
 	}
+	
+	public abstract boolean validMove(int x, int y);
 	
 	@Override
 	public String toString(){

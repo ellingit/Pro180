@@ -8,17 +8,17 @@ public class GameEngine {
 	private List<String> moveSet;
 	private String pcMoveRgx = "[kqbnrp][ld][a-h][1-8]";
 	private String locMoveRgx = "([a-h][1-8]\\s[a-h][1-8][\\*\\s]?){1,2}";
-	private static final HashMap<Character, String> COLOR_KEY = new HashMap<>();
-	private static final HashMap<Character, String> PIECE_KEY = new HashMap<>();
+	public static final HashMap<Character, String> COLOR_KEY = new HashMap<>();
+	public static final HashMap<Character, String> PIECE_KEY = new HashMap<>();
 	static {
 		COLOR_KEY.put('l', "light");
 		COLOR_KEY.put('d', "dark");
-		PIECE_KEY.put('k', "king");
-		PIECE_KEY.put('q', "queen");
-		PIECE_KEY.put('b', "bishop");
-		PIECE_KEY.put('n', "knight");
-		PIECE_KEY.put('r', "rook");
-		PIECE_KEY.put('p', "pawn");
+		PIECE_KEY.put('k', "King");
+		PIECE_KEY.put('q', "Queen");
+		PIECE_KEY.put('b', "Bishop");
+		PIECE_KEY.put('n', "Knight");
+		PIECE_KEY.put('r', "Rook");
+		PIECE_KEY.put('p', "Pawn");
 	}
 	
 	public GameEngine(String filePath){

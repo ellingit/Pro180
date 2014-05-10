@@ -1,19 +1,8 @@
 package board;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import pieces.Bishop;
-import pieces.King;
-import pieces.Knight;
-import pieces.Pawn;
-import pieces.Piece;
-import pieces.Queen;
-import pieces.Rook;
+import pieces.*;
 import chess.GameEngine;
 import exceptions.IllegalMoveException;
 
@@ -22,6 +11,7 @@ public class GameBoard {
 	private static char[] columns = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'};
 	private static int[] rows = {1, 2, 3, 4, 5, 6, 7, 8};
 	private static LinkedHashMap<String, Piece> board = new LinkedHashMap<>();
+	private LinkedHashMap<String, ArrayList<String>> moveablePieces;
 	private GameEngine ge = new GameEngine("..\\moves.txt");
 	private List<String> moveSet;
 	private boolean darkSide = false;
@@ -89,7 +79,8 @@ public class GameBoard {
 				System.err.println(e.getMessage());
 			}
 		}
-		getAvailableMoves();
+//		getAvailableMoves();
+		showPiecesWithMoves();
 	}
 	public Piece getPieceAt(String position){
 		return board.get(position);
@@ -104,8 +95,8 @@ public class GameBoard {
 		else throw new IllegalMoveException("Illegal Move");
 	}
 	//Find all possible moves for all pieces on the board
-	private HashMap<String, ArrayList<String>> getAvailableMoves(){
-		HashMap<String, ArrayList<String>> moveablePieces = new HashMap<>();
+	private void getAvailableMoves(){
+		moveablePieces = new LinkedHashMap<>();
 		Iterator<Map.Entry<String, Piece>> i = board.entrySet().iterator();
 		while(i.hasNext()){
 			Map.Entry<String, Piece> kv = (Map.Entry<String, Piece>)i.next();
@@ -116,12 +107,11 @@ public class GameBoard {
 					String nextKey = it.next();
 					if(validatedMove(kv.getKey(), nextKey)){
 						moveablePieces.get(kv.getKey()).add(nextKey);
-						System.out.println(kv.getKey() + " to " + nextKey);
+//						System.out.println(kv.getKey() + " to " + nextKey);
 					}
 				}
 			}
 		}
-		return moveablePieces;
 	}
 	//Check if move violates any rules
 	private boolean validatedMove(String orig, String dest){
@@ -137,12 +127,13 @@ public class GameBoard {
 			} else return false;
 		} else return false;
 	}
-
+	//Make sure the move isn't out of turn
 	private boolean turnCheck(String origin, String destination){
 		if(getPieceAt(origin).isEvil && !darkSide) return false;
 		else if(!getPieceAt(origin).isEvil && darkSide) return false;
 		else return true;
 	}
+	//Check move against piece's rules
 	private boolean moveCheck(String origin, String destination){
 		int rowDif = destination.charAt(1) - origin.charAt(1);
 		int colDif = destination.charAt(0) - origin.charAt(0);
@@ -152,6 +143,7 @@ public class GameBoard {
 		if(!getPieceAt(origin).validMove(colDif, rowDif)) return false;
 		else return true;
 	}
+	//Walk the line
 	private boolean walk(String origin, boolean evil, String destination){
 		if(origin.equals(destination)) return false;
 		int xd = 0, yd = 0;
@@ -173,11 +165,28 @@ public class GameBoard {
 			else return walk(nextLocation, evil, destination);
 		}
 	}
+	//Knights are too cool to walk
 	private boolean jump(String origin, String destination){
 		if(getPieceAt(origin).getClass().getSimpleName().equals("Knight")){
 			if(getPieceAt(destination) != null && getPieceAt(destination).isEvil == getPieceAt(origin).isEvil) return false;
 			else return true;
 		} else return false;
+	}
+	private void showPiecesWithMoves(){
+		getAvailableMoves();
+		Iterator<Map.Entry<String, ArrayList<String>>> i = moveablePieces.entrySet().iterator();
+		while(i.hasNext()){
+			Map.Entry<String, ArrayList<String>> kv = (Map.Entry<String, ArrayList<String>>)i.next();
+			if(!kv.getValue().isEmpty())
+				System.out.println(getPieceAt(kv.getKey()).getClass().getSimpleName() + " @ " + kv.getKey());
+		}
+	}
+	private void showMovesByPiece(String key){
+		ArrayList<String> options = moveablePieces.get(key);
+		for(String s : options){
+			System.out.print("Moves:");
+			System.out.print(" " + s);
+		}
 	}
 	//Print the board to the console
 	@Override

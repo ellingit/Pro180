@@ -28,29 +28,10 @@ public class GameEngine {
 	public void run(){
 		moveSet = fio.getMoves();
 		validateMoves();
-		System.out.println(parseMovesToText());
+		//System.out.println(parseMovesToText());
 	}
-	
-	private String parseMovesToText(){
-		String move = "";
-		for(String s : moveSet){
-			if(s.matches(pcMoveRgx)){
-				move += "\nPlace " + COLOR_KEY.get(s.charAt(1)) + " " + PIECE_KEY.get(s.charAt(0)) + " on " + s.substring(2);
-			}
-			else{
-				if(s.length() < 7){
-					move += "\nMove the piece on " + s.substring(0,3) + " to " + s.substring(3,5);
-					if(s.contains("*")) move += " and capture the piece at " + s.substring(3,5);
-				} else {
-					if(s.contains("a1")){ move += "\nlight queen's side castle"; }
-					else if(s.contains("h1")){ move += "\nlight king's side castle"; }
-					else if(s.contains("a8")){ move += "\ndark king's side castle"; }
-					else if(s.contains("h8")){ move += "\ndark queen's side castle"; }
-					else move = "\n\nInvalid Move\n";
-				}
-			}
-		}
-		return move;
+	public List<String> getMoves(){
+		return moveSet;
 	}
 	private void validateMoves(){
 		for(int i=0; i<moveSet.size(); i++){
@@ -58,4 +39,26 @@ public class GameEngine {
 				moveSet.remove(moveSet.get(i));
 		}
 	}
+	
+//	private String parseMovesToText(){
+//		String move = "";
+//		for(String s : moveSet){
+//			if(s.toLowerCase().matches(pcMoveRgx)){
+//				move += "\nPlace " + COLOR_KEY.get(s.charAt(1)) + " " + PIECE_KEY.get(s.charAt(0)) + " on " + s.substring(2);
+//			}
+//			else{
+//				if(s.length() < 7){
+//					move += "\nMove the piece on " + s.substring(0,3) + " to " + s.substring(3,5);
+//					if(s.contains("*")) move += " and capture the piece at " + s.substring(3,5);
+//				} else {
+//					if(s.contains("a1")){ move += "\nlight queen's side castle"; }
+//					else if(s.contains("h1")){ move += "\nlight king's side castle"; }
+//					else if(s.contains("a8")){ move += "\ndark king's side castle"; }
+//					else if(s.contains("h8")){ move += "\ndark queen's side castle"; }
+//					else move = "\n\nInvalid Move\n";
+//				}
+//			}
+//		}
+//		return move;
+//	}
 }

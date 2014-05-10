@@ -2,16 +2,21 @@ package board;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import pieces.*;
 import exceptions.*;
+import chess.GameEngine;
 
 public class GameBoard {
 	
 	private static char[] columns = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'};
 	private static int[] rows = {1, 2, 3, 4, 5, 6, 7, 8};
 	private static LinkedHashMap<String, Piece> board = new LinkedHashMap<>();
+	private GameEngine ge = new GameEngine("..\\moves.txt");
+	private List<String> moveSet;
+	private boolean darkSide = false;
 	
 	static {
 		//build the empty board
@@ -63,12 +68,30 @@ public class GameBoard {
 		}
 	}
 	//Find piece at a give location
+	public void run(){
+		ge.run();
+		moveSet = ge.getMoves();
+		for(String s : moveSet){
+			s = s.toUpperCase();
+			try {
+				System.out.println("\n" + s.substring(0,2) + " to " + s.substring(3,5) + "\n");
+				move(s.substring(0,2), s.substring(3,5));
+				System.out.println(this);
+			} catch (IllegalMoveException e) {
+				System.err.println(e.getMessage());
+			}
+		}
+	}
 	public Piece getPieceAt(String position){
 		return board.get(position);
 	}
 	//Move piece at a given origin to a given destination
-	public void moveTo(String orig, String dest) throws IllegalMoveException{
-		if(validMove(orig, dest)) board.put(dest, getPieceAt(orig));
+	public void move(String orig, String dest) throws IllegalMoveException{
+		if(validMove(orig, dest)){
+			board.put(dest, getPieceAt(orig));
+			board.put(orig, null);
+			darkSide = !darkSide;
+		}
 		else throw new IllegalMoveException("Illegal Move");
 	}
 	private boolean validMove(String orig, String dest){
@@ -76,6 +99,9 @@ public class GameBoard {
 		//Conforms to en passant and castling rules
 		//Move places King in check
 		//Moves out of bounds (check user input)
+		if(getPieceAt(orig) == null) return false;
+		if(getPieceAt(orig).isEvil && !darkSide) return false;
+		else if(darkSide) return false;
 		if(!coastIsClear(orig, dest)) return false;
 		if(getPieceAt(dest) != null && getPieceAt(orig).isEvil == getPieceAt(dest).isEvil) return false;
 		int rowDif = dest.charAt(1) - orig.charAt(1);
@@ -89,59 +115,123 @@ public class GameBoard {
 	private boolean coastIsClear(String orig, String dest){
 		int rowDif = dest.charAt(1) - orig.charAt(1);
 		int colDif = dest.charAt(0) - orig.charAt(0);
-		if(rowDif == 0 && colDif != 0){
+		if(rowDif == 0){
+			if(colDif == 0) return false;
 			if(colDif > 0){
-				for(char i=orig.charAt(0); i<dest.charAt(0); i+=1){
+				for(char i=(char)(orig.charAt(0) + 1); i<dest.charAt(0); i+=1){
 					String key = "";
-					key += (char)i + orig.charAt(1);
+					key += (char)i;
+					key += orig.charAt(1);
 					if(getPieceAt(key) != null) return false;
 				}
 			} else {
-				for(char i=orig.charAt(0); i>dest.charAt(0); i-=1){
+				for(char i=(char)(orig.charAt(0) + 1); i>dest.charAt(0); i-=1){
 					String key = "";
-					key += (char)i + orig.charAt(1);
+					key += (char)i;
+					key += orig.charAt(1);
 					if(getPieceAt(key) != null) return false;
 				}
+			}
+		} else{
+			if(colDif == 0) {
+				if(rowDif > 0){
+					for(char i=(char)(orig.charAt(1) + 1); i<dest.charAt(1); i+=1){
+						String key = "";
+						key += orig.charAt(0);
+						key += (char)i;
+						if(getPieceAt(key) != null) return false;
+					}
+				} else {
+					for(char i=(char)(orig.charAt(1) + 1); i>dest.charAt(1); i-=1){
+						String key = "";
+						key += orig.charAt(0);
+						key += (char)i;
+						if(getPieceAt(key) != null) return false;
+					}
+				}
+			} else {
+				if(Math.abs(rowDif) == Math.abs(colDif)){
+					if(colDif > 0){
+						char r = orig.charAt(1);
+						for(char c=(char)(orig.charAt(0) + 1); c<dest.charAt(0); c+=1){
+							String key = ""; key += c + r;
+							if(rowDif>0)r+=1;
+							else r-=1;
+							if(getPieceAt(key) != null) return false;
+							
+						}
+					} else {
+						char r = orig.charAt(1);
+						for(char c=(char)(orig.charAt(0) + 1); c>dest.charAt(0); c-=1){
+							String key = ""; key += c + r;
+							if(rowDif>0)r+=1;
+							else r-=1;
+							if(getPieceAt(key) != null) return false;
+							
+						}
+					}
+				} else return true;
 			}
 		}
-		else if(colDif == 0 && rowDif != 0){
-			if(rowDif > 0){
-				for(char i=orig.charAt(1); i<dest.charAt(1); i+=1){
-					String key = "";
-					key += orig.charAt(0) + (char)i;
-					if(getPieceAt(key) != null) return false;
-				}
-			} else {
-				for(char i=orig.charAt(1); i>dest.charAt(1); i-=1){
-					String key = "";
-					key += orig.charAt(0) + (char)i;
-					if(getPieceAt(key) != null) return false;
-				}
-			}
-		}
-		else if(Math.abs(rowDif) == Math.abs(colDif)){
-			if(colDif > 0){
-				char r = orig.charAt(1);
-				for(char c=orig.charAt(0); c<dest.charAt(0); c+=1){
-					String key = ""; key += c + r;
-					if(rowDif>0)r+=1;
-					else r-=1;
-					if(getPieceAt(key) != null) return false;
-					
-				}
-			} else {
-				char r = orig.charAt(1);
-				for(char c=orig.charAt(0); c>dest.charAt(0); c-=1){
-					String key = ""; key += c + r;
-					if(rowDif>0)r+=1;
-					else r-=1;
-					if(getPieceAt(key) != null) return false;
-					
-				}
-			}
-		}//diag
 		return true;
 	}
+//	private boolean coastIsClear(String orig, String dest){
+//		int rowDif = dest.charAt(1) - orig.charAt(1);
+//		int colDif = dest.charAt(0) - orig.charAt(0);
+//		if(rowDif == 0 && colDif != 0){
+//			System.err.println("test 1");
+//			if(colDif > 0){
+//				for(char i=orig.charAt(0); i<dest.charAt(0); i+=1){
+//					String key = "";
+//					key += (char)i + orig.charAt(1);
+//					if(getPieceAt(key) != null) return false;
+//				}
+//			} else {
+//				for(char i=orig.charAt(0); i>dest.charAt(0); i-=1){
+//					String key = "";
+//					key += (char)i + orig.charAt(1);
+//					if(getPieceAt(key) != null) return false;
+//				}
+//			}
+//		} else if(colDif == 0 && rowDif != 0){
+//			System.err.println("test 2");
+//			if(rowDif > 0){
+//				for(char i=orig.charAt(1); i<dest.charAt(1); i+=1){
+//					String key = "";
+//					key += orig.charAt(0) + (char)i;
+//					if(getPieceAt(key) != null) return false;
+//				}
+//			} else {
+//				for(char i=orig.charAt(1); i>dest.charAt(1); i-=1){
+//					String key = "";
+//					key += orig.charAt(0) + (char)i;
+//					if(getPieceAt(key) != null) return false;
+//				}
+//			}
+//		} else if(Math.abs(rowDif) == Math.abs(colDif)){
+//			System.err.println("test 3");
+//			if(colDif > 0){
+//				char r = orig.charAt(1);
+//				for(char c=orig.charAt(0); c<dest.charAt(0); c+=1){
+//					String key = ""; key += c + r;
+//					if(rowDif>0)r+=1;
+//					else r-=1;
+//					if(getPieceAt(key) != null) return false;
+//					
+//				}
+//			} else {
+//				char r = orig.charAt(1);
+//				for(char c=orig.charAt(0); c>dest.charAt(0); c-=1){
+//					String key = ""; key += c + r;
+//					if(rowDif>0)r+=1;
+//					else r-=1;
+//					if(getPieceAt(key) != null) return false;
+//					
+//				}
+//			}
+//		} else return true;
+//		return false;
+//	}
 	//Print the board to the console
 	@Override
 	public String toString(){

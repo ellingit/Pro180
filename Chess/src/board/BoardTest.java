@@ -3,7 +3,9 @@ package board;
 public class BoardTest {
 
 	public static void main(String[] args) {
-		System.out.println(new GameBoard(true));
+		GameBoard gb = new GameBoard(true);
+		//System.out.println(gb);
+		gb.run();
 	}
 
 }

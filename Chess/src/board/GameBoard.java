@@ -1,7 +1,7 @@
 package board;
 
-//import java.util.ArrayList;
-//import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -75,7 +75,7 @@ public class GameBoard {
 			board.put("H7", new Pawn(true));
 		}
 	}
-	//Find piece at a give location
+	//Find piece at a given location
 	public void run(){
 		ge.run();
 		moveSet = ge.getMoves();
@@ -89,7 +89,7 @@ public class GameBoard {
 				System.err.println(e.getMessage());
 			}
 		}
-//		getAvailableMoves();
+		getAvailableMoves();
 	}
 	public Piece getPieceAt(String position){
 		return board.get(position);
@@ -104,25 +104,25 @@ public class GameBoard {
 		else throw new IllegalMoveException("Illegal Move");
 	}
 	//Find all possible moves for all pieces on the board
-//	private HashMap<String, ArrayList<String>> getAvailableMoves(){
-//		HashMap<String, ArrayList<String>> moveablePieces = new HashMap<>();
-//		Iterator<Map.Entry<String, Piece>> i = board.entrySet().iterator();
-//		while(i.hasNext()){
-//			Map.Entry<String, Piece> kv = (Map.Entry<String, Piece>)i.next();
-//			if(kv.getValue() != null){
-//				moveablePieces.put(kv.getKey(), new ArrayList<String>());
-//				Iterator<String> it = board.keySet().iterator();
-//				while(it.hasNext()){
-//					String nextKey = it.next();
-//					if(validMove(kv.getKey(), nextKey)){
-//						moveablePieces.get(kv.getKey()).add(nextKey);
-//						System.out.println(kv.getKey() + " to " + nextKey);
-//					}
-//				}
-//			}
-//		}
-//		return moveablePieces;
-//	}
+	private HashMap<String, ArrayList<String>> getAvailableMoves(){
+		HashMap<String, ArrayList<String>> moveablePieces = new HashMap<>();
+		Iterator<Map.Entry<String, Piece>> i = board.entrySet().iterator();
+		while(i.hasNext()){
+			Map.Entry<String, Piece> kv = (Map.Entry<String, Piece>)i.next();
+			if(kv.getValue() != null){
+				moveablePieces.put(kv.getKey(), new ArrayList<String>());
+				Iterator<String> it = board.keySet().iterator();
+				while(it.hasNext()){
+					String nextKey = it.next();
+					if(validatedMove(kv.getKey(), nextKey)){
+						moveablePieces.get(kv.getKey()).add(nextKey);
+						System.out.println(kv.getKey() + " to " + nextKey);
+					}
+				}
+			}
+		}
+		return moveablePieces;
+	}
 	//Check if move violates any rules
 	private boolean validatedMove(String orig, String dest){
 		//Illegal Moves Not Yet Handled:
@@ -131,29 +131,11 @@ public class GameBoard {
 		if(getPieceAt(orig) == null) return false;
 		if(turnCheck(orig, dest)){
 			if(moveCheck(orig, dest)){
-				if(getPieceAt(orig).validMove(dest.charAt(0) - orig.charAt(0), dest.charAt(1) - orig.charAt(1))){
-					if(jump(orig, dest)) return true;
-					else if(walk(orig, getPieceAt(orig).isEvil, dest)) return true;
-					else return false;
-				} else return false;
+				if(jump(orig, dest)) return true;
+				else if(walk(orig, getPieceAt(orig).isEvil, dest)) return true;
+				else return false;
 			} else return false;
 		} else return false;
-	}
-
-	//Print the board to the console
-	@Override
-	public String toString(){
-		String display = "";
-		Iterator<Map.Entry<String, Piece>> i = board.entrySet().iterator();
-		int count = 1;
-		while(i.hasNext()){
-			if(count > 8){ display += "\n\n"; count = 1; }
-			Map.Entry<String, Piece> next = (Map.Entry<String, Piece>)i.next();
-			if(next.getValue() != null) display += next.getValue() + "\t";
-			else display += "-\t";
-			count++;
-		}
-		return display;
 	}
 
 	private boolean turnCheck(String origin, String destination){
@@ -196,5 +178,20 @@ public class GameBoard {
 			if(getPieceAt(destination) != null && getPieceAt(destination).isEvil == getPieceAt(origin).isEvil) return false;
 			else return true;
 		} else return false;
+	}
+	//Print the board to the console
+	@Override
+	public String toString(){
+		String display = "";
+		Iterator<Map.Entry<String, Piece>> i = board.entrySet().iterator();
+		int count = 1;
+		while(i.hasNext()){
+			if(count > 8){ display += "\n\n"; count = 1; }
+			Map.Entry<String, Piece> next = (Map.Entry<String, Piece>)i.next();
+			if(next.getValue() != null) display += next.getValue() + "\t";
+			else display += "-\t";
+			count++;
+		}
+		return display;
 	}
 }

@@ -98,10 +98,9 @@ public class GameBoard {
 		//Illegal Moves Not Yet Handled:
 		//Conforms to en passant and castling rules
 		//Move places King in check
-		//Moves out of bounds (check user input)
 		if(getPieceAt(orig) == null) return false;
 		if(getPieceAt(orig).isEvil && !darkSide) return false;
-		else if(darkSide) return false;
+		else if(!getPieceAt(orig).isEvil && darkSide) return false;		
 		if(!coastIsClear(orig, dest)) return false;
 		if(getPieceAt(dest) != null && getPieceAt(orig).isEvil == getPieceAt(dest).isEvil) return false;
 		int rowDif = dest.charAt(1) - orig.charAt(1);
@@ -115,6 +114,7 @@ public class GameBoard {
 	private boolean coastIsClear(String orig, String dest){
 		int rowDif = dest.charAt(1) - orig.charAt(1);
 		int colDif = dest.charAt(0) - orig.charAt(0);
+		
 		if(rowDif == 0){
 			if(colDif == 0) return false;
 			if(colDif > 0){
@@ -125,7 +125,7 @@ public class GameBoard {
 					if(getPieceAt(key) != null) return false;
 				}
 			} else {
-				for(char i=(char)(orig.charAt(0) + 1); i>dest.charAt(0); i-=1){
+				for(char i=(char)(orig.charAt(0) - 1); i>dest.charAt(0); i-=1){
 					String key = "";
 					key += (char)i;
 					key += orig.charAt(1);
@@ -142,7 +142,7 @@ public class GameBoard {
 						if(getPieceAt(key) != null) return false;
 					}
 				} else {
-					for(char i=(char)(orig.charAt(1) + 1); i>dest.charAt(1); i-=1){
+					for(char i=(char)(orig.charAt(1) - 1); i>dest.charAt(1); i-=1){
 						String key = "";
 						key += orig.charAt(0);
 						key += (char)i;
@@ -162,7 +162,7 @@ public class GameBoard {
 						}
 					} else {
 						char r = orig.charAt(1);
-						for(char c=(char)(orig.charAt(0) + 1); c>dest.charAt(0); c-=1){
+						for(char c=(char)(orig.charAt(0) - 1); c>dest.charAt(0); c-=1){
 							String key = ""; key += c + r;
 							if(rowDif>0)r+=1;
 							else r-=1;
@@ -175,63 +175,6 @@ public class GameBoard {
 		}
 		return true;
 	}
-//	private boolean coastIsClear(String orig, String dest){
-//		int rowDif = dest.charAt(1) - orig.charAt(1);
-//		int colDif = dest.charAt(0) - orig.charAt(0);
-//		if(rowDif == 0 && colDif != 0){
-//			System.err.println("test 1");
-//			if(colDif > 0){
-//				for(char i=orig.charAt(0); i<dest.charAt(0); i+=1){
-//					String key = "";
-//					key += (char)i + orig.charAt(1);
-//					if(getPieceAt(key) != null) return false;
-//				}
-//			} else {
-//				for(char i=orig.charAt(0); i>dest.charAt(0); i-=1){
-//					String key = "";
-//					key += (char)i + orig.charAt(1);
-//					if(getPieceAt(key) != null) return false;
-//				}
-//			}
-//		} else if(colDif == 0 && rowDif != 0){
-//			System.err.println("test 2");
-//			if(rowDif > 0){
-//				for(char i=orig.charAt(1); i<dest.charAt(1); i+=1){
-//					String key = "";
-//					key += orig.charAt(0) + (char)i;
-//					if(getPieceAt(key) != null) return false;
-//				}
-//			} else {
-//				for(char i=orig.charAt(1); i>dest.charAt(1); i-=1){
-//					String key = "";
-//					key += orig.charAt(0) + (char)i;
-//					if(getPieceAt(key) != null) return false;
-//				}
-//			}
-//		} else if(Math.abs(rowDif) == Math.abs(colDif)){
-//			System.err.println("test 3");
-//			if(colDif > 0){
-//				char r = orig.charAt(1);
-//				for(char c=orig.charAt(0); c<dest.charAt(0); c+=1){
-//					String key = ""; key += c + r;
-//					if(rowDif>0)r+=1;
-//					else r-=1;
-//					if(getPieceAt(key) != null) return false;
-//					
-//				}
-//			} else {
-//				char r = orig.charAt(1);
-//				for(char c=orig.charAt(0); c>dest.charAt(0); c-=1){
-//					String key = ""; key += c + r;
-//					if(rowDif>0)r+=1;
-//					else r-=1;
-//					if(getPieceAt(key) != null) return false;
-//					
-//				}
-//			}
-//		} else return true;
-//		return false;
-//	}
 	//Print the board to the console
 	@Override
 	public String toString(){

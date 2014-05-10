@@ -1,9 +1,2 @@
 e2 e3
-h2 h3
-h3 h4
-h1 h5
-d2 d3
-f1 d4
-b1 a3
-d1 h5
-h5 f7
+d7 d6

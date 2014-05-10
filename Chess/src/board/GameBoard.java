@@ -92,9 +92,11 @@ public class GameBoard {
 			board.put(dest, getPieceAt(orig));
 			board.put(orig, null);
 			darkSide = !darkSide;
+			if(getPieceAt(dest).getClass().getSimpleName().equals("Pawn")) ((Pawn) getPieceAt(dest)).moved();
 		}
 		else throw new IllegalMoveException("Illegal Move");
 	}
+	//Game On!
 	private void play(){
 		while(true){
 			getAvailableMoves();
@@ -153,6 +155,7 @@ public class GameBoard {
 		int colDif = destination.charAt(0) - origin.charAt(0);
 		if(getPieceAt(origin).getClass().getSimpleName().equals("Pawn") && getPieceAt(destination) != null){
 			if(!((Pawn)getPieceAt(origin)).validMove(colDif, rowDif, true)) return false;
+			else return true;
 		}
 		if(!getPieceAt(origin).validMove(colDif, rowDif)) return false;
 		else return true;
@@ -194,7 +197,6 @@ public class GameBoard {
 			Map.Entry<String, ArrayList<String>> kv = (Map.Entry<String, ArrayList<String>>)i.next();
 			if(!kv.getValue().isEmpty())
 				pieces.add(kv.getKey());
-//			pieces.add(getPieceAt(kv.getKey()).getClass().getSimpleName() + " @ " + kv.getKey());
 		}
 		return pieces;
 	}

@@ -94,6 +94,7 @@ public class GameBoard {
 		}
 		else throw new IllegalMoveException("Illegal Move");
 	}
+	//Check if move violates any rules
 	private boolean validMove(String orig, String dest){
 		//Illegal Moves Not Yet Handled:
 		//Conforms to en passant and castling rules
@@ -111,6 +112,7 @@ public class GameBoard {
 		if(!getPieceAt(orig).validMove(colDif, rowDif)) return false;
 		return true;
 	}
+	//Check piece's path to make sure there are no pieces in the way
 	private boolean coastIsClear(String orig, String dest){
 		int rowDif = dest.charAt(1) - orig.charAt(1);
 		int colDif = dest.charAt(0) - orig.charAt(0);
@@ -185,7 +187,7 @@ public class GameBoard {
 			if(count > 8){ display += "\n\n"; count = 1; }
 			Map.Entry<String, Piece> next = (Map.Entry<String, Piece>)i.next();
 			if(next.getValue() != null) display += next.getValue() + "\t";
-			else display += "[]\t";
+			else display += "-\t";
 			count++;
 		}
 		return display;

@@ -13,9 +13,8 @@ public abstract class Piece {
 	@Override
 	public String toString(){
 		String display = "";
-		if(isEvil) display += "D";
-		else display += "L";
 		display += this.getClass().getSimpleName().substring(0,1);
+		if(isEvil) return display.toLowerCase();		
 		return display;
 	}
 }

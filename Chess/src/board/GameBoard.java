@@ -13,7 +13,7 @@ public class GameBoard {
 	private static int[] rows = {1, 2, 3, 4, 5, 6, 7, 8};
 	private static LinkedHashMap<String, Piece> board = new LinkedHashMap<>();
 	private LinkedHashMap<String, ArrayList<String>> moveablePieces;
-	private GameEngine ge = new GameEngine("..\\moves.txt");
+	private GameEngine ge = new GameEngine("..\\foolsMate.txt");
 	private List<String> moveSet;
 	private boolean darkSide = false;
 	private ConsoleUI cui = new ConsoleUI();
@@ -72,15 +72,52 @@ public class GameBoard {
 		ge.run();
 		moveSet = ge.getMoves();
 		for(String s : moveSet){
-			s = s.toUpperCase();
+//			s = s.toUpperCase();
 			try {
-				System.out.println("\n" + s.substring(0,2) + " to " + s.substring(3,5) + "\n");
-				move(s.substring(0,2), s.substring(3,5));
-				System.out.println(this);
+				if(s.matches(GameEngine.locMoveRgx)){
+					System.out.println("\n" + s.substring(0,2) + " to " + s.substring(3,5) + "\n");
+					move(s.substring(0,2), s.substring(3,5));
+					System.out.println(this);
+				} else if(s.matches(GameEngine.pcMoveRgx)){
+					String position = s.substring(2);
+					switch(s.charAt(0)){
+					case 'k':
+						if(s.charAt(1) == 'l') board.put(position, new King(false));
+						else board.put(position, new King(true));
+						break;
+					case 'q':
+						if(s.charAt(1) == 'l') board.put(position, new Queen(false));
+						else board.put(position, new Queen(true));
+						break;
+					case 'b':
+						if(s.charAt(1) == 'l') board.put(position, new Bishop(false));
+						else board.put(position, new Bishop(true));
+						break;
+					case 'n':
+						if(s.charAt(1) == 'l') board.put(position, new Knight(false));
+						else board.put(position, new Knight(true));
+						break;
+					case 'r':
+						if(s.charAt(1) == 'l') board.put(position, new Rook(false));
+						else board.put(position, new Rook(true));
+						break;
+					case 'p':
+						if(s.charAt(1) == 'l') board.put(position, new Pawn(false));
+						else board.put(position, new Pawn(true));
+						break;
+					default:
+						System.err.println("Invalid Piece Placement");
+						break;
+					}
+//					System.out.println("\n" + GameEngine.COLOR_KEY.get(s.charAt(1)) + " " 
+//											+ GameEngine.PIECE_KEY.get(s.charAt(0)) + " placed on " + s.substring(2));
+				}
+//				System.out.println(this);
 			} catch (IllegalMoveException e) {
 				System.err.println(e.getMessage());
 			}
 		}
+		System.out.println(this);
 		play();		
 	}
 	public Piece getPieceAt(String position){

@@ -1,7 +1,7 @@
 package board;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+//import java.util.ArrayList;
+//import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -104,25 +104,25 @@ public class GameBoard {
 		else throw new IllegalMoveException("Illegal Move");
 	}
 	//Find all possible moves for all pieces on the board
-	private HashMap<String, ArrayList<String>> getAvailableMoves(){
-		HashMap<String, ArrayList<String>> moveablePieces = new HashMap<>();
-		Iterator<Map.Entry<String, Piece>> i = board.entrySet().iterator();
-		while(i.hasNext()){
-			Map.Entry<String, Piece> kv = (Map.Entry<String, Piece>)i.next();
-			if(kv.getValue() != null){
-				moveablePieces.put(kv.getKey(), new ArrayList<String>());
-				Iterator<String> it = board.keySet().iterator();
-				while(it.hasNext()){
-					String nextKey = it.next();
-					if(validMove(kv.getKey(), nextKey)){
-						moveablePieces.get(kv.getKey()).add(nextKey);
-						System.out.println(kv.getKey() + " to " + nextKey);
-					}
-				}
-			}
-		}
-		return moveablePieces;
-	}
+//	private HashMap<String, ArrayList<String>> getAvailableMoves(){
+//		HashMap<String, ArrayList<String>> moveablePieces = new HashMap<>();
+//		Iterator<Map.Entry<String, Piece>> i = board.entrySet().iterator();
+//		while(i.hasNext()){
+//			Map.Entry<String, Piece> kv = (Map.Entry<String, Piece>)i.next();
+//			if(kv.getValue() != null){
+//				moveablePieces.put(kv.getKey(), new ArrayList<String>());
+//				Iterator<String> it = board.keySet().iterator();
+//				while(it.hasNext()){
+//					String nextKey = it.next();
+//					if(validMove(kv.getKey(), nextKey)){
+//						moveablePieces.get(kv.getKey()).add(nextKey);
+//						System.out.println(kv.getKey() + " to " + nextKey);
+//					}
+//				}
+//			}
+//		}
+//		return moveablePieces;
+//	}
 	//Check if move violates any rules
 	private boolean validMove(String orig, String dest){
 		//Illegal Moves Not Yet Handled:
@@ -151,96 +151,96 @@ public class GameBoard {
 		} else return false;
 	}
 	//Check piece's path to make sure there are no pieces in the way
-	private boolean coastIsClear(String orig, String dest){
-		int rowDif = dest.charAt(1) - orig.charAt(1);
-		int colDif = dest.charAt(0) - orig.charAt(0);
-		
-		if(rowDif == 0){
-			if(colDif == 0) return false;
-			if(colDif > 0){
-				for(char i=(char)(orig.charAt(0) + 1); i<dest.charAt(0); i+=1){
-					String key = "";
-					key += (char)i;
-					key += orig.charAt(1);
-					if(getPieceAt(key) != null) return false;
-				}
-			} else {
-				for(char i=(char)(orig.charAt(0) - 1); i>dest.charAt(0); i-=1){
-					String key = "";
-					key += (char)i;
-					key += orig.charAt(1);
-					if(getPieceAt(key) != null) return false;
-				}
-			}
-		} else{
-			if(colDif == 0) {
-				if(rowDif > 0){
-					for(char i=(char)(orig.charAt(1) + 1); i<dest.charAt(1); i+=1){
-						String key = "";
-						key += orig.charAt(0);
-						key += (char)i;
-						if(getPieceAt(key) != null) return false;
-					}
-				} else {
-					for(char i=(char)(orig.charAt(1) - 1); i>dest.charAt(1); i-=1){
-						String key = "";
-						key += orig.charAt(0);
-						key += (char)i;
-						if(getPieceAt(key) != null) return false;
-					}
-				}
-			} else {
-				if(Math.abs(rowDif) == Math.abs(colDif)){
-					if(colDif > 0){
-						if(rowDif > 0){
-							char r = (char)(orig.charAt(1) + 1);
-							for(char c=(char)(orig.charAt(0) + 1); c<dest.charAt(0); c+=1){
-								String key = ""; 
-								key += c;
-								key += r;
-								if(rowDif>0)r+=1;
-								else r+=1;
-								if(getPieceAt(key) != null) return false;
-							}
-						} else {
-							char r = (char)(orig.charAt(1) - 1);
-							for(char c=(char)(orig.charAt(0) + 1); c<dest.charAt(0); c+=1){
-								String key = ""; 
-								key += c;
-								key += r;
-								if(rowDif>0)r+=1;
-								else r-=1;
-								if(getPieceAt(key) != null) return false;
-							}
-						}
-					} else {
-						if(rowDif > 0){
-							char r = (char)(orig.charAt(1) + 1);
-							for(char c=(char)(orig.charAt(0) - 1); c>dest.charAt(0); c-=1){
-								String key = ""; 
-								key += c;
-								key += r;
-								if(rowDif>0)r+=1;
-								else r+=1;
-								if(getPieceAt(key) != null) return false;
-							}
-						} else {
-							char r = (char)(orig.charAt(1) - 1);
-							for(char c=(char)(orig.charAt(0) - 1); c>dest.charAt(0); c-=1){
-								String key = ""; 
-								key += c;
-								key += r;
-								if(rowDif>0)r+=1;
-								else r-=1;
-								if(getPieceAt(key) != null) return false;
-							}
-						}
-					}
-				} else return true;
-			}
-		}
-		return true;
-	}
+//	private boolean coastIsClear(String orig, String dest){
+//		int rowDif = dest.charAt(1) - orig.charAt(1);
+//		int colDif = dest.charAt(0) - orig.charAt(0);
+//		
+//		if(rowDif == 0){
+//			if(colDif == 0) return false;
+//			if(colDif > 0){
+//				for(char i=(char)(orig.charAt(0) + 1); i<dest.charAt(0); i+=1){
+//					String key = "";
+//					key += (char)i;
+//					key += orig.charAt(1);
+//					if(getPieceAt(key) != null) return false;
+//				}
+//			} else {
+//				for(char i=(char)(orig.charAt(0) - 1); i>dest.charAt(0); i-=1){
+//					String key = "";
+//					key += (char)i;
+//					key += orig.charAt(1);
+//					if(getPieceAt(key) != null) return false;
+//				}
+//			}
+//		} else{
+//			if(colDif == 0) {
+//				if(rowDif > 0){
+//					for(char i=(char)(orig.charAt(1) + 1); i<dest.charAt(1); i+=1){
+//						String key = "";
+//						key += orig.charAt(0);
+//						key += (char)i;
+//						if(getPieceAt(key) != null) return false;
+//					}
+//				} else {
+//					for(char i=(char)(orig.charAt(1) - 1); i>dest.charAt(1); i-=1){
+//						String key = "";
+//						key += orig.charAt(0);
+//						key += (char)i;
+//						if(getPieceAt(key) != null) return false;
+//					}
+//				}
+//			} else {
+//				if(Math.abs(rowDif) == Math.abs(colDif)){
+//					if(colDif > 0){
+//						if(rowDif > 0){
+//							char r = (char)(orig.charAt(1) + 1);
+//							for(char c=(char)(orig.charAt(0) + 1); c<dest.charAt(0); c+=1){
+//								String key = ""; 
+//								key += c;
+//								key += r;
+//								if(rowDif>0)r+=1;
+//								else r+=1;
+//								if(getPieceAt(key) != null) return false;
+//							}
+//						} else {
+//							char r = (char)(orig.charAt(1) - 1);
+//							for(char c=(char)(orig.charAt(0) + 1); c<dest.charAt(0); c+=1){
+//								String key = ""; 
+//								key += c;
+//								key += r;
+//								if(rowDif>0)r+=1;
+//								else r-=1;
+//								if(getPieceAt(key) != null) return false;
+//							}
+//						}
+//					} else {
+//						if(rowDif > 0){
+//							char r = (char)(orig.charAt(1) + 1);
+//							for(char c=(char)(orig.charAt(0) - 1); c>dest.charAt(0); c-=1){
+//								String key = ""; 
+//								key += c;
+//								key += r;
+//								if(rowDif>0)r+=1;
+//								else r+=1;
+//								if(getPieceAt(key) != null) return false;
+//							}
+//						} else {
+//							char r = (char)(orig.charAt(1) - 1);
+//							for(char c=(char)(orig.charAt(0) - 1); c>dest.charAt(0); c-=1){
+//								String key = ""; 
+//								key += c;
+//								key += r;
+//								if(rowDif>0)r+=1;
+//								else r-=1;
+//								if(getPieceAt(key) != null) return false;
+//							}
+//						}
+//					}
+//				} else return true;
+//			}
+//		}
+//		return true;
+//	}
 	//Print the board to the console
 	@Override
 	public String toString(){

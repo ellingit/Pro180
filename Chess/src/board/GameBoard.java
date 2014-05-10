@@ -3,6 +3,7 @@ package board;
 import java.util.*;
 
 import pieces.*;
+import ui.ConsoleUI;
 import chess.GameEngine;
 import exceptions.IllegalMoveException;
 
@@ -15,6 +16,7 @@ public class GameBoard {
 	private GameEngine ge = new GameEngine("..\\moves.txt");
 	private List<String> moveSet;
 	private boolean darkSide = false;
+	private ConsoleUI cui = new ConsoleUI();
 	
 	static {
 		//build the empty board
@@ -79,8 +81,10 @@ public class GameBoard {
 				System.err.println(e.getMessage());
 			}
 		}
-//		getAvailableMoves();
-		showPiecesWithMoves();
+		getAvailableMoves();
+		ArrayList<String> pieceOptions = showPiecesWithMoves();
+		int selection = cui.PromptForSelection(pieceOptions);
+		cui.PromptForSelection(moveablePieces.get(pieceOptions.get(selection)));
 	}
 	public Piece getPieceAt(String position){
 		return board.get(position);
@@ -172,14 +176,17 @@ public class GameBoard {
 			else return true;
 		} else return false;
 	}
-	private void showPiecesWithMoves(){
-		getAvailableMoves();
+	private ArrayList<String> showPiecesWithMoves(){
+//		getAvailableMoves();
+		ArrayList<String> pieces = new ArrayList<>();
 		Iterator<Map.Entry<String, ArrayList<String>>> i = moveablePieces.entrySet().iterator();
 		while(i.hasNext()){
 			Map.Entry<String, ArrayList<String>> kv = (Map.Entry<String, ArrayList<String>>)i.next();
 			if(!kv.getValue().isEmpty())
-				System.out.println(getPieceAt(kv.getKey()).getClass().getSimpleName() + " @ " + kv.getKey());
+				pieces.add(kv.getKey());
+//			pieces.add(getPieceAt(kv.getKey()).getClass().getSimpleName() + " @ " + kv.getKey());
 		}
+		return pieces;
 	}
 	private void showMovesByPiece(String key){
 		ArrayList<String> options = moveablePieces.get(key);

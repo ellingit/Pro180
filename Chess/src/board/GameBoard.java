@@ -81,10 +81,7 @@ public class GameBoard {
 				System.err.println(e.getMessage());
 			}
 		}
-		getAvailableMoves();
-		ArrayList<String> pieceOptions = showPiecesWithMoves();
-		int selection = cui.PromptForSelection(pieceOptions);
-		cui.PromptForSelection(moveablePieces.get(pieceOptions.get(selection)));
+		play();		
 	}
 	public Piece getPieceAt(String position){
 		return board.get(position);
@@ -97,6 +94,19 @@ public class GameBoard {
 			darkSide = !darkSide;
 		}
 		else throw new IllegalMoveException("Illegal Move");
+	}
+	private void play(){
+		while(true){
+			getAvailableMoves();
+			ArrayList<String> pieceOptions = showPiecesWithMoves();
+			int selection = cui.PromptForSelection(pieceOptions);
+			String o = pieceOptions.get(selection-1);
+			ArrayList<String> moveOptions = moveablePieces.get(o);
+			selection = cui.PromptForSelection(moveOptions);
+			String d = moveOptions.get(selection-1);
+			try { move(o, d); System.out.println(this);} 
+			catch (IllegalMoveException e) { System.err.println(e.getMessage()); }
+		}
 	}
 	//Find all possible moves for all pieces on the board
 	private void getAvailableMoves(){
@@ -187,13 +197,6 @@ public class GameBoard {
 //			pieces.add(getPieceAt(kv.getKey()).getClass().getSimpleName() + " @ " + kv.getKey());
 		}
 		return pieces;
-	}
-	private void showMovesByPiece(String key){
-		ArrayList<String> options = moveablePieces.get(key);
-		for(String s : options){
-			System.out.print("Moves:");
-			System.out.print(" " + s);
-		}
 	}
 	//Print the board to the console
 	@Override

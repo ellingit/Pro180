@@ -1,13 +1,21 @@
 package board;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import pieces.*;
-import exceptions.*;
+import pieces.Bishop;
+import pieces.King;
+import pieces.Knight;
+import pieces.Pawn;
+import pieces.Piece;
+import pieces.Queen;
+import pieces.Rook;
 import chess.GameEngine;
+import exceptions.IllegalMoveException;
 
 public class GameBoard {
 	
@@ -81,6 +89,7 @@ public class GameBoard {
 				System.err.println(e.getMessage());
 			}
 		}
+//		getAvailableMoves();
 	}
 	public Piece getPieceAt(String position){
 		return board.get(position);
@@ -94,23 +103,52 @@ public class GameBoard {
 		}
 		else throw new IllegalMoveException("Illegal Move");
 	}
+	//Find all possible moves for all pieces on the board
+	private HashMap<String, ArrayList<String>> getAvailableMoves(){
+		HashMap<String, ArrayList<String>> moveablePieces = new HashMap<>();
+		Iterator<Map.Entry<String, Piece>> i = board.entrySet().iterator();
+		while(i.hasNext()){
+			Map.Entry<String, Piece> kv = (Map.Entry<String, Piece>)i.next();
+			if(kv.getValue() != null){
+				moveablePieces.put(kv.getKey(), new ArrayList<String>());
+				Iterator<String> it = board.keySet().iterator();
+				while(it.hasNext()){
+					String nextKey = it.next();
+					if(validMove(kv.getKey(), nextKey)){
+						moveablePieces.get(kv.getKey()).add(nextKey);
+						System.out.println(kv.getKey() + " to " + nextKey);
+					}
+				}
+			}
+		}
+		return moveablePieces;
+	}
 	//Check if move violates any rules
 	private boolean validMove(String orig, String dest){
 		//Illegal Moves Not Yet Handled:
 		//Conforms to en passant and castling rules
 		//Move places King in check
+//		if(getPieceAt(orig) == null) return false;
+//		if(getPieceAt(orig).isEvil && !darkSide) return false;
+//		else if(!getPieceAt(orig).isEvil && darkSide) return false;		
+//		if(!coastIsClear(orig, dest)) return false;
+//		if(getPieceAt(dest) != null && getPieceAt(orig).isEvil == getPieceAt(dest).isEvil) return false;
+//		int rowDif = dest.charAt(1) - orig.charAt(1);
+//		int colDif = dest.charAt(0) - orig.charAt(0);
+//		if(getPieceAt(orig).getClass().getSimpleName().equals("Pawn") && getPieceAt(dest) != null){
+//			if(!((Pawn)getPieceAt(orig)).validMove(colDif, rowDif, true)) return false;
+//		}
+//		if(!getPieceAt(orig).validMove(colDif, rowDif)) return false;
 		if(getPieceAt(orig) == null) return false;
-		if(getPieceAt(orig).isEvil && !darkSide) return false;
-		else if(!getPieceAt(orig).isEvil && darkSide) return false;		
-		if(!coastIsClear(orig, dest)) return false;
-		if(getPieceAt(dest) != null && getPieceAt(orig).isEvil == getPieceAt(dest).isEvil) return false;
-		int rowDif = dest.charAt(1) - orig.charAt(1);
-		int colDif = dest.charAt(0) - orig.charAt(0);
-		if(getPieceAt(orig).getClass().getSimpleName().equals("Pawn") && getPieceAt(dest) != null){
-			if(!((Pawn)getPieceAt(orig)).validMove(colDif, rowDif, true)) return false;
-		}
-		if(!getPieceAt(orig).validMove(colDif, rowDif)) return false;
-		return true;
+		if(turnCheck(orig, dest)){
+			if(moveCheck(orig, dest)){
+				if(getPieceAt(orig).validMove(dest.charAt(0) - orig.charAt(0), dest.charAt(1) - orig.charAt(1))){
+					if(jump(orig, dest)) return true;
+					else if(walk(orig, getPieceAt(orig).isEvil, dest)) return true;
+					else return false;
+				} else return false;
+			} else return false;
+		} else return false;
 	}
 	//Check piece's path to make sure there are no pieces in the way
 	private boolean coastIsClear(String orig, String dest){
@@ -154,22 +192,48 @@ public class GameBoard {
 			} else {
 				if(Math.abs(rowDif) == Math.abs(colDif)){
 					if(colDif > 0){
-						char r = orig.charAt(1);
-						for(char c=(char)(orig.charAt(0) + 1); c<dest.charAt(0); c+=1){
-							String key = ""; key += c + r;
-							if(rowDif>0)r+=1;
-							else r-=1;
-							if(getPieceAt(key) != null) return false;
-							
+						if(rowDif > 0){
+							char r = (char)(orig.charAt(1) + 1);
+							for(char c=(char)(orig.charAt(0) + 1); c<dest.charAt(0); c+=1){
+								String key = ""; 
+								key += c;
+								key += r;
+								if(rowDif>0)r+=1;
+								else r+=1;
+								if(getPieceAt(key) != null) return false;
+							}
+						} else {
+							char r = (char)(orig.charAt(1) - 1);
+							for(char c=(char)(orig.charAt(0) + 1); c<dest.charAt(0); c+=1){
+								String key = ""; 
+								key += c;
+								key += r;
+								if(rowDif>0)r+=1;
+								else r-=1;
+								if(getPieceAt(key) != null) return false;
+							}
 						}
 					} else {
-						char r = orig.charAt(1);
-						for(char c=(char)(orig.charAt(0) - 1); c>dest.charAt(0); c-=1){
-							String key = ""; key += c + r;
-							if(rowDif>0)r+=1;
-							else r-=1;
-							if(getPieceAt(key) != null) return false;
-							
+						if(rowDif > 0){
+							char r = (char)(orig.charAt(1) + 1);
+							for(char c=(char)(orig.charAt(0) - 1); c>dest.charAt(0); c-=1){
+								String key = ""; 
+								key += c;
+								key += r;
+								if(rowDif>0)r+=1;
+								else r+=1;
+								if(getPieceAt(key) != null) return false;
+							}
+						} else {
+							char r = (char)(orig.charAt(1) - 1);
+							for(char c=(char)(orig.charAt(0) - 1); c>dest.charAt(0); c-=1){
+								String key = ""; 
+								key += c;
+								key += r;
+								if(rowDif>0)r+=1;
+								else r-=1;
+								if(getPieceAt(key) != null) return false;
+							}
 						}
 					}
 				} else return true;
@@ -191,5 +255,47 @@ public class GameBoard {
 			count++;
 		}
 		return display;
+	}
+
+	private boolean turnCheck(String origin, String destination){
+		if(getPieceAt(origin).isEvil && !darkSide) return false;
+		else if(!getPieceAt(origin).isEvil && darkSide) return false;
+		else return true;
+	}
+	private boolean moveCheck(String origin, String destination){
+		int rowDif = destination.charAt(1) - origin.charAt(1);
+		int colDif = destination.charAt(0) - origin.charAt(0);
+		if(getPieceAt(origin).getClass().getSimpleName().equals("Pawn") && getPieceAt(destination) != null){
+			if(!((Pawn)getPieceAt(origin)).validMove(colDif, rowDif, true)) return false;
+		}
+		if(!getPieceAt(origin).validMove(colDif, rowDif)) return false;
+		else return true;
+	}
+	private boolean walk(String origin, boolean evil, String destination){
+		if(origin.equals(destination)) return false;
+		int xd = 0, yd = 0;
+		if(destination.charAt(0) > origin.charAt(0)) xd = 1;
+		else if(destination.charAt(0) < origin.charAt(0)) xd = -1;
+		if(destination.charAt(1) > origin.charAt(1)) yd = 1;
+		else if(destination.charAt(1) < origin.charAt(1)) yd = -1;
+		String nextLocation = "";
+		nextLocation += (char)(origin.charAt(0) + xd);
+		nextLocation += (char)(origin.charAt(1) + yd);
+		if(board.get(nextLocation) != null){
+			if(nextLocation.equals(destination)){
+				if(evil == board.get(nextLocation).isEvil) return false;
+				else return true;
+			}
+			else return false;
+		} else {
+			if(nextLocation.equals(destination)) return true;
+			else return walk(nextLocation, evil, destination);
+		}
+	}
+	private boolean jump(String origin, String destination){
+		if(getPieceAt(origin).getClass().getSimpleName().equals("Knight")){
+			if(getPieceAt(destination) != null && getPieceAt(destination).isEvil == getPieceAt(origin).isEvil) return false;
+			else return true;
+		} else return false;
 	}
 }

@@ -6,7 +6,7 @@ import java.util.List;
 public class GameEngine {
 	private FileIO fio;
 	private List<String> moveSet;
-	public static final String pcMoveRgx = "[kqbnrpKQBNRP][ld][a-hA-H][1-8]";
+	public static final String pcMoveRgx = "[kqbnrpKQBNRP][ldLD][a-hA-H][1-8]";
 	public static final String locMoveRgx = "([a-hA-H][1-8]\\s[a-hA-H][1-8][\\*\\s]?){1,2}";
 	public static final HashMap<Character, String> COLOR_KEY = new HashMap<>();
 	public static final HashMap<Character, String> PIECE_KEY = new HashMap<>();

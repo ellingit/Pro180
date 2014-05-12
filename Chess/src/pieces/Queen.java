@@ -6,8 +6,6 @@ public class Queen extends Piece {
 		super(isEvil);
 	}
 
-	private boolean hasMoved = false;
-
 	@Override
 	public boolean validMove(int x, int y) {
 		if(Math.abs(x) != Math.abs(y) && x != 0 && y != 0) return false;

@@ -3,8 +3,8 @@ package board;
 public class BoardTest {
 
 	public static void main(String[] args) {
-		GameBoard gb = new GameBoard(false);
-//		System.out.println(gb);
+		//new game: use "..\\setup.txt"
+		GameBoard gb = new GameBoard("..\\setup.txt");
 		gb.run();
 	}
 

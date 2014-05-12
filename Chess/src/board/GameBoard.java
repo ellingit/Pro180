@@ -13,7 +13,7 @@ public class GameBoard {
 	private static int[] rows = {1, 2, 3, 4, 5, 6, 7, 8};
 	private static LinkedHashMap<String, Piece> board = new LinkedHashMap<>();
 	private LinkedHashMap<String, ArrayList<String>> moveablePieces;
-	private GameEngine ge = new GameEngine("..\\foolsMate.txt");
+	private GameEngine ge;
 	private List<String> moveSet;
 	private boolean darkSide = false;
 	private ConsoleUI cui = new ConsoleUI();
@@ -26,53 +26,14 @@ public class GameBoard {
 			}
 		}
 	}
-	//Create a new board, boolean determines if it's the beginning of the game
-	public GameBoard(boolean gameStart){
-		if(gameStart){
-			//place all the pieces
-			board.put("A1", new Rook(false));
-			board.put("B1", new Knight(false));
-			board.put("C1", new Bishop(false));
-			board.put("D1", new Queen(false));
-			board.put("E1", new King(false));
-			board.put("F1", new Bishop(false));
-			board.put("G1", new Knight(false));
-			board.put("H1", new Rook(false));
-			
-			board.put("A2", new Pawn(false));
-			board.put("B2", new Pawn(false));
-			board.put("C2", new Pawn(false));
-			board.put("D2", new Pawn(false));
-			board.put("E2", new Pawn(false));
-			board.put("F2", new Pawn(false));
-			board.put("G2", new Pawn(false));
-			board.put("H2", new Pawn(false));
-
-			board.put("A8", new Rook(true));
-			board.put("B8", new Knight(true));
-			board.put("C8", new Bishop(true));
-			board.put("D8", new Queen(true));
-			board.put("E8", new King(true));
-			board.put("F8", new Bishop(true));
-			board.put("G8", new Knight(true));
-			board.put("H8", new Rook(true));
-			
-			board.put("A7", new Pawn(true));
-			board.put("B7", new Pawn(true));
-			board.put("C7", new Pawn(true));
-			board.put("D7", new Pawn(true));
-			board.put("E7", new Pawn(true));
-			board.put("F7", new Pawn(true));
-			board.put("G7", new Pawn(true));
-			board.put("H7", new Pawn(true));
-		}
+	public GameBoard(){
+		
 	}
-	//Find piece at a given location
-	public void run(){
+	public GameBoard(String filePath){
+		ge = new GameEngine(filePath);
 		ge.run();
 		moveSet = ge.getMoves();
 		for(String s : moveSet){
-//			s = s.toUpperCase();
 			try {
 				if(s.matches(GameEngine.locMoveRgx)){
 					System.out.println("\n" + s.substring(0,2) + " to " + s.substring(3,5) + "\n");
@@ -80,46 +41,44 @@ public class GameBoard {
 					System.out.println(this);
 				} else if(s.matches(GameEngine.pcMoveRgx)){
 					String position = s.substring(2);
+					boolean darkness;
+					if(s.charAt(1) == 'l') darkness = false;
+					else darkness = true;
 					switch(s.charAt(0)){
 					case 'k':
-						if(s.charAt(1) == 'l') board.put(position, new King(false));
-						else board.put(position, new King(true));
+						board.put(position, new King(darkness));
 						break;
 					case 'q':
-						if(s.charAt(1) == 'l') board.put(position, new Queen(false));
-						else board.put(position, new Queen(true));
+						board.put(position, new Queen(darkness));
 						break;
 					case 'b':
-						if(s.charAt(1) == 'l') board.put(position, new Bishop(false));
-						else board.put(position, new Bishop(true));
+						board.put(position, new Bishop(darkness));
 						break;
 					case 'n':
-						if(s.charAt(1) == 'l') board.put(position, new Knight(false));
-						else board.put(position, new Knight(true));
+						board.put(position, new Knight(darkness));
 						break;
 					case 'r':
-						if(s.charAt(1) == 'l') board.put(position, new Rook(false));
-						else board.put(position, new Rook(true));
+						board.put(position, new Rook(darkness));
 						break;
 					case 'p':
-						if(s.charAt(1) == 'l') board.put(position, new Pawn(false));
-						else board.put(position, new Pawn(true));
+						board.put(position, new Pawn(darkness));
 						break;
 					default:
 						System.err.println("Invalid Piece Placement");
 						break;
 					}
-//					System.out.println("\n" + GameEngine.COLOR_KEY.get(s.charAt(1)) + " " 
-//											+ GameEngine.PIECE_KEY.get(s.charAt(0)) + " placed on " + s.substring(2));
 				}
-//				System.out.println(this);
 			} catch (IllegalMoveException e) {
 				System.err.println(e.getMessage());
 			}
 		}
 		System.out.println(this);
+	}
+	public void run(){
+		ge.run();
 		play();		
 	}
+	//Find a piece given its location
 	public Piece getPieceAt(String position){
 		return board.get(position);
 	}
@@ -128,6 +87,7 @@ public class GameBoard {
 		if(validatedMove(orig, dest)){
 			board.put(dest, getPieceAt(orig));
 			board.put(orig, null);
+			if(inCheck()) System.err.println("You're in check.");
 			darkSide = !darkSide;
 			if(getPieceAt(dest).getClass().getSimpleName().equals("Pawn")) ((Pawn) getPieceAt(dest)).moved();
 		}
@@ -135,6 +95,7 @@ public class GameBoard {
 	}
 	//Game On!
 	private void play(){
+		if(inCheck()) System.err.println("Holy Crap.");
 		while(true){
 			getAvailableMoves();
 			ArrayList<String> pieceOptions = showPiecesWithMoves();
@@ -160,7 +121,6 @@ public class GameBoard {
 					String nextKey = it.next();
 					if(validatedMove(kv.getKey(), nextKey)){
 						moveablePieces.get(kv.getKey()).add(nextKey);
-//						System.out.println(kv.getKey() + " to " + nextKey);
 					}
 				}
 			}
@@ -169,7 +129,7 @@ public class GameBoard {
 	//Check if move violates any rules
 	private boolean validatedMove(String orig, String dest){
 		//Illegal Moves Not Yet Handled:
-		//Conforms to en passant and castling rules
+		//Improper castling or en passant
 		//Move places King in check
 		if(getPieceAt(orig) == null) return false;
 		if(turnCheck(orig, dest)){
@@ -227,7 +187,7 @@ public class GameBoard {
 		} else return false;
 	}
 	private ArrayList<String> showPiecesWithMoves(){
-//		getAvailableMoves();
+		getAvailableMoves();
 		ArrayList<String> pieces = new ArrayList<>();
 		Iterator<Map.Entry<String, ArrayList<String>>> i = moveablePieces.entrySet().iterator();
 		while(i.hasNext()){
@@ -236,6 +196,23 @@ public class GameBoard {
 				pieces.add(kv.getKey());
 		}
 		return pieces;
+	}
+	private boolean inCheck(){
+		String theOnceAndFutureKing = null;
+		getAvailableMoves();
+		ArrayList<String> pieceOptions = showPiecesWithMoves();
+		Iterator<Map.Entry<String, Piece>> i = board.entrySet().iterator();
+		while(i.hasNext()){
+			Map.Entry<String, Piece> kv = (Map.Entry<String, Piece>)i.next();
+			if(kv.getValue() != null){
+			if(kv.getValue().getClass().getSimpleName().equals("King") && kv.getValue().isEvil != darkSide) 
+				theOnceAndFutureKing = kv.getKey();
+			}
+		}
+		for(String s : pieceOptions){
+			if(board.get(s).isEvil == darkSide && moveablePieces.get(s).contains(theOnceAndFutureKing)) return true;
+		}
+		return false;
 	}
 	//Print the board to the console
 	@Override

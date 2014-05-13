@@ -1,0 +1,17 @@
+effects of moving a piece
+everything in the moved piece's path
+available moves of any piece that could have used the destination(on or through)
+available moves of any piece that can now use the origin
+
+before moving a piece, make a list of affected pieces or locations
+could cut down processing time for AI
+could simplify check/checkmate checking
+
+--
+
+AI can focus on opening strategies
+- opponent AI's will be making less critical decisions near the beginning of the game
+- store a bank of opening moves made by chessmasters
+	- especially against computers (where the human won)
+- favor stalemate over loss
+	- how would enemy ai be detecting stalemate? any way to turn that against it?

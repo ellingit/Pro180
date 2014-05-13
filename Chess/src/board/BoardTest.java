@@ -7,5 +7,4 @@ public class BoardTest {
 		GameBoard gb = new GameBoard("..\\setup.txt");
 		gb.run();
 	}
-
 }

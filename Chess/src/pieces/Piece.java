@@ -13,8 +13,8 @@ public abstract class Piece {
 	@Override
 	public String toString(){
 		String display = "";
-		display += this.getClass().getSimpleName().substring(0,1);
-		if(isEvil) return display.toLowerCase();		
+		display += this.getClass().getSimpleName().substring(0,1).toLowerCase();
+		if(!isEvil) return display.toUpperCase();		
 		return display;
 	}
 }

@@ -6,19 +6,19 @@ import java.util.List;
 public class GameEngine {
 	private FileIO fio;
 	private List<String> moveSet;
-	public static final String pcMoveRgx = "[kqbnrpKQBNRP][ldLD][a-hA-H][1-8]";
-	public static final String locMoveRgx = "([a-hA-H][1-8]\\s[a-hA-H][1-8][\\*\\s]?){1,2}";
+	public static final String pcMoveRgx = "[KQBNRP][LD][A-H][1-8]";
+	public static final String locMoveRgx = "([A-H][1-8]\\s[A-H][1-8][\\*\\s]?){1,2}";
 	public static final HashMap<Character, String> COLOR_KEY = new HashMap<>();
 	public static final HashMap<Character, String> PIECE_KEY = new HashMap<>();
 	static {
-		COLOR_KEY.put('l', "light");
-		COLOR_KEY.put('d', "dark");
-		PIECE_KEY.put('k', "King");
-		PIECE_KEY.put('q', "Queen");
-		PIECE_KEY.put('b', "Bishop");
-		PIECE_KEY.put('n', "Knight");
-		PIECE_KEY.put('r', "Rook");
-		PIECE_KEY.put('p', "Pawn");
+		COLOR_KEY.put('L', "light");
+		COLOR_KEY.put('D', "dark");
+		PIECE_KEY.put('K', "King");
+		PIECE_KEY.put('Q', "Queen");
+		PIECE_KEY.put('B', "Bishop");
+		PIECE_KEY.put('N', "Knight");
+		PIECE_KEY.put('R', "Rook");
+		PIECE_KEY.put('P', "Pawn");
 	}
 	
 	public GameEngine(String filePath){
@@ -28,13 +28,14 @@ public class GameEngine {
 	public void run(){
 		moveSet = fio.getMoves();
 		validateMoves();
-		//System.out.println(parseMovesToText());
+//		System.out.println(parseMovesToText());
 	}
 	public List<String> getMoves(){
 		return moveSet;
 	}
 	private void validateMoves(){
 		for(int i=0; i<moveSet.size(); i++){
+			moveSet.set(i, moveSet.get(i).toUpperCase());
 			if(!moveSet.get(i).matches(pcMoveRgx) && !moveSet.get(i).matches(locMoveRgx)) 
 				moveSet.remove(moveSet.get(i));
 		}

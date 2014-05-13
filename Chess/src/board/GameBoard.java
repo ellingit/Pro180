@@ -8,7 +8,7 @@ import chess.GameEngine;
 import exceptions.IllegalMoveException;
 
 public class GameBoard {
-	
+	//2D array would be better
 	private static char[] columns = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'};
 	private static int[] rows = {1, 2, 3, 4, 5, 6, 7, 8};
 	private static LinkedHashMap<String, Piece> board = new LinkedHashMap<>();
@@ -36,31 +36,32 @@ public class GameBoard {
 		for(String s : moveSet){
 			try {
 				if(s.matches(GameEngine.locMoveRgx)){
-					System.out.println("\n" + s.substring(0,2) + " to " + s.substring(3,5) + "\n");
+//					System.out.println("\n" + s.substring(0,2) + " to " + s.substring(3,5) + "\n");
 					move(s.substring(0,2), s.substring(3,5));
 					System.out.println(this);
 				} else if(s.matches(GameEngine.pcMoveRgx)){
 					String position = s.substring(2);
 					boolean darkness;
-					if(s.charAt(1) == 'l') darkness = false;
+					if(s.charAt(1) == 'L') darkness = false;
 					else darkness = true;
+					//create a place piece interface and an array of implementations
 					switch(s.charAt(0)){
-					case 'k':
+					case 'K':
 						board.put(position, new King(darkness));
 						break;
-					case 'q':
+					case 'Q':
 						board.put(position, new Queen(darkness));
 						break;
-					case 'b':
+					case 'B':
 						board.put(position, new Bishop(darkness));
 						break;
-					case 'n':
+					case 'N':
 						board.put(position, new Knight(darkness));
 						break;
-					case 'r':
+					case 'R':
 						board.put(position, new Rook(darkness));
 						break;
-					case 'p':
+					case 'P':
 						board.put(position, new Pawn(darkness));
 						break;
 					default:
@@ -76,7 +77,7 @@ public class GameBoard {
 	}
 	public void run(){
 		ge.run();
-		play();		
+//		play();		
 	}
 	//Find a piece given its location
 	public Piece getPieceAt(String position){
@@ -221,7 +222,7 @@ public class GameBoard {
 		Iterator<Map.Entry<String, Piece>> i = board.entrySet().iterator();
 		int count = 1;
 		while(i.hasNext()){
-			if(count > 8){ display += "\n\n"; count = 1; }
+			if(count > rows.length){ display += "\n\n"; count = 1; }
 			Map.Entry<String, Piece> next = (Map.Entry<String, Piece>)i.next();
 			if(next.getValue() != null) display += next.getValue() + "\t";
 			else display += "-\t";

@@ -1,9 +1,12 @@
 package control;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import pieces.*;
+//import pieces.Piece;
+import pieces.PieceType;
 import userInterface.ConsoleUI;
 import board.GameBoard;
 import board.Location;
@@ -14,18 +17,19 @@ public class GameMaster {
 //	private boolean whiteTurn = true; <--This is for Module 4
 	private GameBoard board = new GameBoard();
 	private ConsoleUI conUI = new ConsoleUI();
+	private HashMap<Location, ArrayList<Location>> allMoves = new HashMap<>();
 		
 	//Constructor
-	public GameMaster(){
+	public GameMaster(String filePath){
 		getMovesFromFile("..\\setup.txt");
 		conUI.printBoard(board);
-		getMovesFromFile("..\\moveTestSet.txt");
+		getMovesFromFile(filePath);
 	}
 	
 	//Public Methods
 	public void move(Location origin, Location destination) throws InvalidMoveException {
 		if(validMove(origin, destination)) board.movePiece(destination, origin);
-		else throw new InvalidMoveException();
+		else throw new InvalidMoveException(origin + " to " + destination + " is not a valid move.");
 	}
 	
 	//Private Methods
@@ -58,7 +62,7 @@ public class GameMaster {
 					destination = new Location(moveMatch.group("destination"));
 					move(origin, destination);
 					conUI.printBoard(board);
-					//TODO: Find another way to handle castling
+					//TODO: Find another way to handle double moves
 //					if(moveMatch.matches()){
 //						try{
 //							origin = new Location(moveMatch.group("origin"));
@@ -70,13 +74,35 @@ public class GameMaster {
 //						}
 //					}
 				} catch (InvalidMoveException e) {
-					System.out.println(origin + " to " + destination + " is not a valid move.");
+					System.out.println(e.getMessage());
 				}
 			}
 			
 		}
 	}
-	//Move Checkers
+	/*
+	private void findAllMoves(){
+		for(int i=0; i<board.getBoard().length; i++){
+			for(int j=0; j<board.getBoard()[i].length; j++){
+				Location currentLocation = new Location(i, j);
+				if(board.getPieceAt(currentLocation) != null){
+					ArrayList<Location> moves = getDestinations(currentLocation);
+					if(moves.size() > 0) allMoves.put(currentLocation, moves);
+				}
+			}
+		}
+	}
+	private ArrayList<Location> getDestinations(Location origin){
+		ArrayList<Location> moves = new ArrayList<>();
+		for(int i=0; i<board.getBoard().length; i++){
+			for(int j=0; j<board.getBoard()[i].length; j++){
+				Location currentLocation = new Location(i,j);
+				if(validMove(origin, currentLocation)) moves.add(currentLocation);
+			}
+		}
+		return moves;
+	}
+	*/
 	//Move Checks
 	private boolean validMove(Location origin, Location destination){
 		if(isEmpty(origin)) return false;
@@ -93,7 +119,7 @@ public class GameMaster {
 		else return false;
 	}
 	private boolean isAllowed(Location origin, Location destination){
-		Piece currentPiece = board.getPieceAt(origin);
+//		Piece currentPiece = board.getPieceAt(origin);
 		//TODO: Consider overloading this method's return type instead of parameters...might be easier to check
 		//This part of the method seems broken anyway, so either way it needs to be reworked
 //		if(currentPiece.getClass().getSimpleName().equals("Pawn") && !isEmpty(destination)){

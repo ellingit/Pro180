@@ -1,6 +1,8 @@
 PDH7
 c8 b6
-e2 e3
+e2 e4
+f1 e3
+F1 d3
 d7 d6
 hjkj
 h2 h3

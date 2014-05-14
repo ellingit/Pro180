@@ -11,7 +11,7 @@ import exceptions.InvalidMoveException;
 import fileIO.FileIO;
 
 public class GameMaster {
-	private boolean whiteTurn = true;
+//	private boolean whiteTurn = true; <--This is for Module 4
 	private GameBoard board = new GameBoard();
 	private ConsoleUI conUI = new ConsoleUI();
 		
@@ -19,13 +19,13 @@ public class GameMaster {
 	public GameMaster(){
 		getMovesFromFile("..\\setup.txt");
 		conUI.printBoard(board);
-		getMovesFromFile("..\\moves.txt");
+		getMovesFromFile("..\\moveTestSet.txt");
 	}
 	
 	//Public Methods
 	public void move(Location origin, Location destination) throws InvalidMoveException {
 		if(validMove(origin, destination)) board.movePiece(destination, origin);
-		else throw new InvalidMoveException("That move is not allowed.");
+		else throw new InvalidMoveException();
 	}
 	
 	//Private Methods
@@ -50,7 +50,7 @@ public class GameMaster {
 						board.placePiece(location, type.makePiece(white));
 					}
 				}
-			} else if (moveMatch.matches()){
+			} else if(moveMatch.matches()){
 				//move the piece
 				Location origin = null, destination = null;
 				try {
@@ -58,14 +58,17 @@ public class GameMaster {
 					destination = new Location(moveMatch.group("destination"));
 					move(origin, destination);
 					conUI.printBoard(board);
-					try{
-						origin = new Location(moveMatch.group("origin"));
-						destination = new Location(moveMatch.group("destination"));
-						move(origin, destination);
-						conUI.printBoard(board);
-					} catch (IllegalStateException ex){
-						System.out.println(ex.getMessage());
-					}
+					//TODO: Find another way to handle castling
+//					if(moveMatch.matches()){
+//						try{
+//							origin = new Location(moveMatch.group("origin"));
+//							destination = new Location(moveMatch.group("destination"));
+//							move(origin, destination);
+//							conUI.printBoard(board);
+//						} catch (IllegalStateException ex){
+//							System.out.println(ex.getMessage());
+//						}
+//					}
 				} catch (InvalidMoveException e) {
 					System.out.println(origin + " to " + destination + " is not a valid move.");
 				}
@@ -77,26 +80,27 @@ public class GameMaster {
 	//Move Checks
 	private boolean validMove(Location origin, Location destination){
 		if(isEmpty(origin)) return false;
-		if(board.getPieceAt(origin).getWhiteness() == whiteTurn){
+//		if(board.getPieceAt(origin).getWhiteness() == whiteTurn){ <--This is for module 4
 			if(isAllowed(origin, destination)){
 				if(canJump(origin)) return true;
 				else if(isClear(origin, destination, board.getPieceAt(origin).getWhiteness())) return true;
 			}
-		}
+//		}
 		return false;
 	}
 	private boolean isEmpty(Location xy){
 		if(board.getPieceAt(xy) == null) return true;
 		else return false;
 	}
-	private boolean isAllowed(Location origin, Location destination){ //TODO: This method seems pretty broken...rewrite?
+	private boolean isAllowed(Location origin, Location destination){
 		Piece currentPiece = board.getPieceAt(origin);
 		//TODO: Consider overloading this method's return type instead of parameters...might be easier to check
-		if(currentPiece.getClass().getSimpleName().equals("Pawn") && !isEmpty(destination)){
-			if(!((Pawn)currentPiece).validMove((destination.Y - origin.Y), (destination.X - origin.X), true)) return false;
-			else return true;
-		}//TODO: This may be where the piece movement is failing...moving sideways instead of forward
-		if(board.getPieceAt(origin).validMove((destination.Y - origin.Y), (destination.X - origin.X))) return true;
+		//This part of the method seems broken anyway, so either way it needs to be reworked
+//		if(currentPiece.getClass().getSimpleName().equals("Pawn") && !isEmpty(destination)){
+//			if(!((Pawn)currentPiece).validMove((destination.Y - origin.Y), (destination.X - origin.X), true)) return false;
+//			else return true;
+//		}
+		if(board.getPieceAt(origin).validMove((destination.X - origin.X), (destination.Y - origin.Y))) return true;
 		else return false;
 	}
 	private boolean isClear(Location org, Location dest, boolean whiteness){

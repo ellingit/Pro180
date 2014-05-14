@@ -6,6 +6,10 @@ public class Pawn extends Piece {
 		super(isWhite);
 	}
 
+	public Pawn() {
+		
+	}
+
 	private boolean hasMoved = false;
 
 	@Override	

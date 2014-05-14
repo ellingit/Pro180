@@ -77,7 +77,7 @@ public class GameBoard {
 	}
 	public void run(){
 		ge.run();
-//		play();		
+		play();		
 	}
 	//Find a piece given its location
 	public Piece getPieceAt(String position){

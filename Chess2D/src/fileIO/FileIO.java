@@ -23,7 +23,7 @@ public class FileIO {
 			BufferedReader buffer = new BufferedReader(fileRead);
 			String nextLine;
 			while((nextLine = buffer.readLine()) != null){
-				moves.add(nextLine);
+				moves.add(nextLine.toUpperCase());
 			}
 			fileRead.close();
 			buffer.close();
@@ -32,26 +32,7 @@ public class FileIO {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return (String[])moves.toArray();
-	}	
-//	private void parseMoves(){
-//		//TODO: Fix this method
-//		Pattern placePattern = Pattern.compile("(?<type>[KQBNRP])(?<color>[LD])(?<location>[A-H][1-8])");
-//		Pattern movePattern = Pattern.compile("((?<origin>[A-H][1-8])\\s(?<destination>[A-H][1-8])[\\*\\s]?){1,2}");
-//		String[] moves = moveExtractor.getDataFromFile();
-//		for(String move : moves){
-//			if(placePattern.matcher(move).matches()){
-//				//place the piece
-//				boolean white;
-//				if(placePattern.matcher(move).group("color").equals("L")) white = true;
-//				else white = false;
-//				String pieceType = PIECE_KEY.get(placePattern.matcher(move).group("type"));
-//				String location = placePattern.matcher(move).group("location");
-//			} else if (movePattern.matcher(move).matches()){
-//				//move the piece
-//				String origin = movePattern.matcher(move).group("origin");
-//				String destination = movePattern.matcher(move).group("destination");
-//			}
-//		}
-//	}
+		String[] movesAsArray = new String[moves.size()];
+		return moves.toArray(movesAsArray);
+	}
 }

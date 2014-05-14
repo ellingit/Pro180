@@ -6,6 +6,10 @@ public class Rook extends Piece {
 		super(isEvil);
 	}
 
+	public Rook() {
+
+	}
+
 	private boolean hasMoved = false;
 
 	@Override

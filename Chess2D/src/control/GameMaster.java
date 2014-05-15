@@ -17,6 +17,8 @@ public class GameMaster {
 	private boolean whiteTurn = true;
 	private GameBoard board = new GameBoard();
 	private ConsoleUI conUI = new ConsoleUI();
+	Pattern placePattern = Pattern.compile("(?<type>[KQBNRP])(?<color>[LD])(?<location>[A-H][1-8])");
+	Pattern movePattern = Pattern.compile("((?<origin>[A-H][1-8])\\s(?<destination>[A-H][1-8])[\\*\\s]?){1,2}");
 //	private HashMap<Location, ArrayList<Location>> allMoves = new HashMap<>();
 		
 	//Constructors
@@ -40,50 +42,56 @@ public class GameMaster {
 	//File Loader
 	private void getMovesFromFile(String filePath){
 		String[] moves = new FileIO(filePath).getDataFromFile();
-		Pattern placePattern = Pattern.compile("(?<type>[KQBNRP])(?<color>[LD])(?<location>[A-H][1-8])");
-		Pattern movePattern = Pattern.compile("((?<origin>[A-H][1-8])\\s(?<destination>[A-H][1-8])[\\*\\s]?){1,2}");
-		
 		for(String command : moves){
 			Matcher placeMatch = placePattern.matcher(command);
 			Matcher moveMatch = movePattern.matcher(command);
 			if(placeMatch.matches()){
-				//place the piece
-				boolean white;
-				char pieceType = placeMatch.group("type").charAt(0);
-				if(placeMatch.group("color").equals("L")) white = true;
-				else white = false;
-				Location location = new Location(placeMatch.group("location"));
-				for(PieceType type : PieceType.values()){ 
-					if(type.getKey() == pieceType){
-						board.placePiece(location, type.makePiece(white));
-					}
-				}
+				placePiece(command, placeMatch);				
 			} else if(moveMatch.matches()){
-				//move the piece
-				Location origin = null, destination = null;
-				try {
-					origin = new Location(moveMatch.group("origin"));
-					destination = new Location(moveMatch.group("destination"));
-					move(origin, destination);
-					conUI.printBoard(board);
-					//TODO: Castling has to allow the rook to jump
-					if(command.length() > 5 && moveMatch.matches()){
-						try{
-							origin = new Location(moveMatch.group("origin"));
-							destination = new Location(moveMatch.group("destination"));
-							move(origin, destination);
-							conUI.printBoard(board);
-						} catch (IllegalStateException ex){
-							System.out.println(ex.getMessage());
-						}
-					}
-				} catch (InvalidMoveException e) {
-					System.out.println(e.getMessage());
-				}
+				movePiece(command, moveMatch);
 			}
-			
 		}
 	}
+	private void placePiece(String command, Matcher placeMatch){
+		boolean white;
+		char pieceType = placeMatch.group("type").charAt(0);
+		white = placeMatch.group("color").equals("L");
+		Location location = new Location(placeMatch.group("location"));
+		for(PieceType type : PieceType.values()){ 
+			if(type.getKey() == pieceType){
+				board.placePiece(location, type.makePiece(white));
+			}
+		}
+	}
+	private void movePiece(String command, Matcher moveMatch){
+		Location origin = null, destination = null;
+		try {
+			origin = new Location(moveMatch.group("origin"));
+			destination = new Location(moveMatch.group("destination"));
+			move(origin, destination);
+			conUI.printBoard(board);
+			if(command.length() > 5 && moveMatch.matches()){
+				castle(command, moveMatch);
+			}
+		} catch (InvalidMoveException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+	private void castle(String command, Matcher moveMatch){
+		//TODO: Castling has to allow the rook to jump
+		Location origin = null, destination = null;
+		try{
+			origin = new Location(moveMatch.group("origin"));
+			destination = new Location(moveMatch.group("destination"));
+			move(origin, destination);
+			conUI.printBoard(board);
+		} catch (IllegalStateException ex){
+			System.out.println(ex.getMessage());
+		} catch (InvalidMoveException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+	
 	/*
 	private void findAllMoves(){
 		for(int i=0; i<board.getBoard().length; i++){
@@ -119,19 +127,17 @@ public class GameMaster {
 		return false;
 	}
 	private boolean isEmpty(Location xy){
-		if(board.getPieceAt(xy) == null) return true;
-		else return false;
+		return board.getPieceAt(xy) == null;
 	}
 	private boolean isAllowed(Location origin, Location destination){
 		Piece currentPiece = board.getPieceAt(origin);
 		if(currentPiece.getClass().getSimpleName().equals("Pawn") && !isEmpty(destination)){
-			if(!((Pawn)currentPiece).validMove((destination.X - origin.X), (destination.Y - origin.Y), true)) return false;
-			else return true;
+			return ((Pawn)currentPiece).validMove((destination.X - origin.X), (destination.Y - origin.Y), true);
 		}
-		if(board.getPieceAt(origin).validMove((destination.X - origin.X), (destination.Y - origin.Y))) return true;
-		else return false;
+		else return board.getPieceAt(origin).validMove((destination.X - origin.X), (destination.Y - origin.Y));
 	}
 	private boolean isClear(Location org, Location dest, boolean whiteness){
+		//TODO: rethink the algorithm to reduce return statements
 		int xD = 0, yD = 0;
 		if(dest.X > org.X) xD = 1;
 		else if(dest.X < org.X) xD = -1;
@@ -149,7 +155,6 @@ public class GameMaster {
 		}
 	}
 	private boolean canJump(Location origin){
-		if(board.getPieceAt(origin).getClass().getSimpleName().equals("Knight")) return true;
-		else return false;
+		return board.getPieceAt(origin).getClass().getSimpleName().equals("Knight");
 	}
 }

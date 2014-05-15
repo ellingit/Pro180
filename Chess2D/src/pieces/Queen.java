@@ -2,8 +2,8 @@ package pieces;
 
 public class Queen extends Piece {
 
-	public Queen(boolean isEvil) {
-		super(isEvil);
+	public Queen(boolean isWhite) {
+		super(isWhite);
 	}
 
 	public Queen() {

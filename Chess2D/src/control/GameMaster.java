@@ -1,11 +1,11 @@
 package control;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+//import java.util.ArrayList;
+//import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-//import pieces.Piece;
+import pieces.*;
 import pieces.PieceType;
 import userInterface.ConsoleUI;
 import board.GameBoard;
@@ -14,12 +14,12 @@ import exceptions.InvalidMoveException;
 import fileIO.FileIO;
 
 public class GameMaster {
-//	private boolean whiteTurn = true; <--This is for Module 4
+	private boolean whiteTurn = true;
 	private GameBoard board = new GameBoard();
 	private ConsoleUI conUI = new ConsoleUI();
-	private HashMap<Location, ArrayList<Location>> allMoves = new HashMap<>();
+//	private HashMap<Location, ArrayList<Location>> allMoves = new HashMap<>();
 		
-	//Constructor
+	//Constructors
 	public GameMaster(String filePath){
 		getMovesFromFile("..\\setup.txt");
 		conUI.printBoard(board);
@@ -28,7 +28,11 @@ public class GameMaster {
 	
 	//Public Methods
 	public void move(Location origin, Location destination) throws InvalidMoveException {
-		if(validMove(origin, destination)) board.movePiece(destination, origin);
+		if(validMove(origin, destination)){
+			System.out.println(origin + " to " + destination);
+			board.movePiece(destination, origin);
+			whiteTurn = !whiteTurn;
+		}
 		else throw new InvalidMoveException(origin + " to " + destination + " is not a valid move.");
 	}
 	
@@ -62,17 +66,17 @@ public class GameMaster {
 					destination = new Location(moveMatch.group("destination"));
 					move(origin, destination);
 					conUI.printBoard(board);
-					//TODO: Find another way to handle double moves
-//					if(moveMatch.matches()){
-//						try{
-//							origin = new Location(moveMatch.group("origin"));
-//							destination = new Location(moveMatch.group("destination"));
-//							move(origin, destination);
-//							conUI.printBoard(board);
-//						} catch (IllegalStateException ex){
-//							System.out.println(ex.getMessage());
-//						}
-//					}
+					//TODO: Castling has to allow the rook to jump
+					if(command.length() > 5 && moveMatch.matches()){
+						try{
+							origin = new Location(moveMatch.group("origin"));
+							destination = new Location(moveMatch.group("destination"));
+							move(origin, destination);
+							conUI.printBoard(board);
+						} catch (IllegalStateException ex){
+							System.out.println(ex.getMessage());
+						}
+					}
 				} catch (InvalidMoveException e) {
 					System.out.println(e.getMessage());
 				}
@@ -106,12 +110,12 @@ public class GameMaster {
 	//Move Checks
 	private boolean validMove(Location origin, Location destination){
 		if(isEmpty(origin)) return false;
-//		if(board.getPieceAt(origin).getWhiteness() == whiteTurn){ <--This is for module 4
+		if(board.getPieceAt(origin).getWhiteness() == whiteTurn){
 			if(isAllowed(origin, destination)){
 				if(canJump(origin)) return true;
 				else if(isClear(origin, destination, board.getPieceAt(origin).getWhiteness())) return true;
 			}
-//		}
+		}
 		return false;
 	}
 	private boolean isEmpty(Location xy){
@@ -119,13 +123,11 @@ public class GameMaster {
 		else return false;
 	}
 	private boolean isAllowed(Location origin, Location destination){
-//		Piece currentPiece = board.getPieceAt(origin);
-		//TODO: Consider overloading this method's return type instead of parameters...might be easier to check
-		//This part of the method seems broken anyway, so either way it needs to be reworked
-//		if(currentPiece.getClass().getSimpleName().equals("Pawn") && !isEmpty(destination)){
-//			if(!((Pawn)currentPiece).validMove((destination.Y - origin.Y), (destination.X - origin.X), true)) return false;
-//			else return true;
-//		}
+		Piece currentPiece = board.getPieceAt(origin);
+		if(currentPiece.getClass().getSimpleName().equals("Pawn") && !isEmpty(destination)){
+			if(!((Pawn)currentPiece).validMove((destination.X - origin.X), (destination.Y - origin.Y), true)) return false;
+			else return true;
+		}
 		if(board.getPieceAt(origin).validMove((destination.X - origin.X), (destination.Y - origin.Y))) return true;
 		else return false;
 	}

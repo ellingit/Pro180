@@ -2,8 +2,8 @@ package pieces;
 
 public class Rook extends Piece {
 
-	public Rook(boolean isEvil) {
-		super(isEvil);
+	public Rook(boolean isWhite) {
+		super(isWhite);
 	}
 
 	public Rook() {

@@ -2,8 +2,8 @@ package pieces;
 
 public class Bishop extends Piece {
 
-	public Bishop(boolean isEvil) {
-		super(isEvil);
+	public Bishop(boolean isWhite) {
+		super(isWhite);
 	}
 
 	public Bishop() {

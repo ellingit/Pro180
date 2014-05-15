@@ -8,10 +8,8 @@ public class Knight extends Piece {
 
 	@Override
 	public boolean validMove(int x, int y) {
-		if(Math.abs(x) != 2 && Math.abs(y) != 2) return false;
-		if(Math.abs(x) != 1 && Math.abs(y) != 1) return false;
-		if((Math.abs(x) == 2 && Math.abs(y) != 1) || (Math.abs(x) == 1 && Math.abs(y) != 2)) return false;
-		else return true;
+		if((Math.abs(x) == 2 && Math.abs(y) == 1) || (Math.abs(x) == 1 && Math.abs(y) == 2)) return true;
+		else return false;
 	}
 	@Override
 	public String toString(){

@@ -17,16 +17,11 @@ public class FileIO {
 	public String[] getDataFromFile(){
 		ArrayList<String> moves = new ArrayList<>();
 		File file = new File(filePath);
-		FileReader fileRead;
-		try {
-			fileRead = new FileReader(file);
-			BufferedReader buffer = new BufferedReader(fileRead);
+		try(BufferedReader buffer = new BufferedReader(new FileReader(file))){
 			String nextLine;
 			while((nextLine = buffer.readLine()) != null){
 				moves.add(nextLine.toUpperCase());
 			}
-			fileRead.close();
-			buffer.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

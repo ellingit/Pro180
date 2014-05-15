@@ -5,7 +5,7 @@ import pieces.*;
 public class GameBoard {
 	private static final int BOARD_SIZE = 8;
 	private Piece[][] board = new Piece[BOARD_SIZE][BOARD_SIZE];
-	
+	//TODO: Consider adding a square object and have the board be a 2D array of squares
 	public Piece getPieceAt(Location xy){
 		return board[xy.Y][xy.X];
 	}
@@ -26,6 +26,7 @@ public class GameBoard {
 		}
 		return kingLocation;
 	}
+	//TODO: Get rid of this method
 	public Piece[][] getBoard(){
 		return board;
 	}

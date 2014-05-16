@@ -2,13 +2,14 @@ package control;
 
 //import java.util.ArrayList;
 //import java.util.HashMap;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import pieces.*;
-import pieces.PieceType;
 import userInterface.ConsoleUI;
 import board.GameBoard;
+import board.GameBoard.boardIterator;
 import board.Location;
 import exceptions.InvalidMoveException;
 import fileIO.FileIO;
@@ -16,7 +17,7 @@ import fileIO.FileIO;
 public class GameMaster {
 	private boolean whiteTurn = true;
 	private GameBoard board = new GameBoard();
-	private ConsoleUI conUI = new ConsoleUI();
+//	private ConsoleUI conUI = new ConsoleUI();
 	Pattern placePattern = Pattern.compile("(?<type>[KQBNRP])(?<color>[LD])(?<location>[A-H][1-8])");
 	Pattern movePattern = Pattern.compile("((?<origin>[A-H][1-8])\\s(?<destination>[A-H][1-8])[\\*\\s]?){1,2}");
 //	private HashMap<Location, ArrayList<Location>> allMoves = new HashMap<>();
@@ -24,7 +25,8 @@ public class GameMaster {
 	//Constructors
 	public GameMaster(String filePath){
 		getMovesFromFile("..\\setup.txt");
-		conUI.printBoard(board);
+		printTest();
+//		conUI.printBoard(board);
 		getMovesFromFile(filePath);
 	}
 	
@@ -69,7 +71,7 @@ public class GameMaster {
 			origin = new Location(moveMatch.group("origin"));
 			destination = new Location(moveMatch.group("destination"));
 			move(origin, destination);
-			conUI.printBoard(board);
+			printTest();
 			if(command.length() > 5 && moveMatch.matches()){
 				castle(command, moveMatch);
 			}
@@ -84,12 +86,26 @@ public class GameMaster {
 			origin = new Location(moveMatch.group("origin"));
 			destination = new Location(moveMatch.group("destination"));
 			move(origin, destination);
-			conUI.printBoard(board);
+			printTest();
 		} catch (IllegalStateException ex){
 			System.out.println(ex.getMessage());
 		} catch (InvalidMoveException e) {
 			System.out.println(e.getMessage());
 		}
+	}
+	
+	private void printTest(){
+		Iterator<Piece> ip = board.iterator();
+		int count = 1;
+		System.out.print("|");
+		while(ip.hasNext()){
+			Piece p = ip.next();
+			if(p != null) System.out.print(" " + p.toString() + " |");
+			else System.out.print(" - |");
+			if(++count % board.getBoardSize()-1 == 0) 
+				if(count<63) System.out.print("\n|");
+		}
+		System.out.println();
 	}
 	
 	/*
@@ -115,6 +131,21 @@ public class GameMaster {
 		return moves;
 	}
 	*/
+	
+	private boolean isInCheck(){
+		GameBoard.boardIterator ip = (boardIterator)board.iterator();
+		while(ip.hasNext()){
+			Piece p = ip.next();
+			if(p.getClass().getSimpleName().equals("King") && p.getWhiteness() != whiteTurn){
+				Location kingLocation = ip.getPieceLocation();
+				//call isAllowed(new Queen(whiteTurn), kingLocation, --dest--) for all squares
+				//and isAllowed(new Knight(whiteTurn), kingLocation, --dest--) for all squares
+				//if any valid moves are found, the king is in check
+				//TODO: find all accessible squares for a queen or knight from this location
+			}
+		}
+		return false;
+	}
 	//Move Checks
 	private boolean validMove(Location origin, Location destination){
 		if(isEmpty(origin)) return false;
@@ -136,23 +167,21 @@ public class GameMaster {
 		}
 		else return board.getPieceAt(origin).validMove((destination.X - origin.X), (destination.Y - origin.Y));
 	}
+	private boolean isAllowed(Piece piece, Location origin, Location destination){
+		return piece.validMove((destination.X - origin.X), (destination.Y - origin.Y));
+	}
 	private boolean isClear(Location org, Location dest, boolean whiteness){
-		//TODO: rethink the algorithm to reduce return statements
-		int xD = 0, yD = 0;
-		if(dest.X > org.X) xD = 1;
-		else if(dest.X < org.X) xD = -1;
-		if(dest.Y > org.Y) yD = 1;
-		else if(dest.Y < org.Y) yD = -1;
+		boolean clear = false;
+		int xD = dest.X - org.X; 
+		int yD = dest.Y - org.Y;
+		if(xD != 0) xD /= Math.abs(xD);
+		if(yD != 0) yD /= Math.abs(yD);
 		Location nextXY = new Location(org.X + xD, org.Y + yD);
-		if(nextXY.X == dest.X && nextXY.Y == dest.Y){
-			if(!isEmpty(nextXY)){
-				if(whiteness == board.getPieceAt(nextXY).getWhiteness()) return false;
-				else return true;
-			} else return true;
-		} else {
-			if(!isEmpty(nextXY)) return false;
-			else return isClear(nextXY, dest, whiteness);
-		}
+		if(!(clear = nextXY.X == dest.X && nextXY.Y == dest.Y)) 
+			if(isEmpty(nextXY)) return isClear(nextXY, dest, whiteness);
+			else clear = false;
+		else if(!isEmpty(nextXY)) clear = whiteness != board.getPieceAt(nextXY).getWhiteness();
+		return clear;
 	}
 	private boolean canJump(Location origin){
 		return board.getPieceAt(origin).getClass().getSimpleName().equals("Knight");

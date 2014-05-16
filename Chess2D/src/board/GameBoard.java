@@ -1,8 +1,10 @@
 package board;
 
+import java.util.Iterator;
+
 import pieces.*;
 
-public class GameBoard {
+public class GameBoard implements Iterable<Piece> {
 	private static final int BOARD_SIZE = 8;
 	private Piece[][] board = new Piece[BOARD_SIZE][BOARD_SIZE];
 	public Piece getPieceAt(Location xy){
@@ -15,55 +17,44 @@ public class GameBoard {
 		board[newXY.Y][newXY.X] = board[prevXY.Y][prevXY.X];
 		board[prevXY.Y][prevXY.X] = null;
 	}
-	//TODO: Find a better way to implement this
-	public Location locateKing(boolean isWhite){
-		Location kingLocation = null;
-		for(int i=0; i<board.length; i++){
-			for(int j=0; j<board[i].length; j++){
-				if(board[i][j].getClass().getSimpleName().equals("King") && board[i][j].getWhiteness() == isWhite)
-					kingLocation = new Location(i,j);
-			}
-		}
-		return kingLocation;
+	public int getBoardSize(){
+		return BOARD_SIZE;
 	}
-	public Piece[][] getBoard(){
-		Piece[][] displayBoard = new Piece[BOARD_SIZE][BOARD_SIZE];
-		for(int i=0; i<BOARD_SIZE; i++){
-			for(int j=0; j<board[i].length; j++){
-				displayBoard[i][j] = board[i][j];
-			}
-		}
-		return displayBoard;
+	@Override
+	public Iterator<Piece> iterator() {
+		return this.new boardIterator();
 	}
-	class boardIterator{
+	
+	public class boardIterator implements Iterator<Piece>{
 		private int row, column;
+		
 		public boardIterator(){
-			row = 0; column = 0;
+			row = board.length-1;
+			column = 0;
 		}
-		public Piece next(){
-			int r = row; 
-			if(row == board.length-1) row++;
-			return board[r][column++];
+		
+		@Override
+		public boolean hasNext() {
+			return row >= 0;
 		}
-		public Piece nextPiece(){
-			for(Piece[] row : board){
-				for(Piece p : row){
-					if(p != null) return p;
-				}
+		@Override
+		public Piece next() {
+			Piece p = board[row][column];
+			incrementCounter();
+			return p;
+		}
+		@Override
+		public void remove() {
+			board[row][column] = null;
+		}
+		public Location getPieceLocation(){
+			return new Location(row, column);
+		}
+		private void incrementCounter(){
+			if(board.length-1 == column++){
+				column = 0;
+				row--;
 			}
-			return null;
-		}
-		public Location nextEmptySquare(){
-			for(int i=0; i<BOARD_SIZE; i++){
-				for(int j=0; j<board[i].length; j++){
-					if(board[i][j] == null) return new Location(i,j);
-				}
-			}
-			return null;
-		}
-		public boolean hasNext(){
-			if(row == board.length-1 && column == board[row].length-1) return false;
-			else return true;
 		}
 	}
 }

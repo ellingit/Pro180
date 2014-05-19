@@ -27,6 +27,7 @@ public class GameBoard implements Iterable<Piece> {
 	
 	public class boardIterator implements Iterator<Piece>{
 		private int row, column;
+		private Location currentLocation;
 		
 		public boardIterator(){
 			row = board.length-1;
@@ -39,6 +40,7 @@ public class GameBoard implements Iterable<Piece> {
 		}
 		@Override
 		public Piece next() {
+			currentLocation = new Location(column, row);
 			Piece p = board[row][column];
 			incrementCounter();
 			return p;
@@ -48,7 +50,7 @@ public class GameBoard implements Iterable<Piece> {
 			board[row][column] = null;
 		}
 		public Location getPieceLocation(){
-			return new Location(row, column);
+			return currentLocation;
 		}
 		private void incrementCounter(){
 			if(board.length-1 == column++){

@@ -1,15 +1,11 @@
 package control;
 
-//import java.util.ArrayList;
-//import java.util.HashMap;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import pieces.*;
-import userInterface.ConsoleUI;
 import board.GameBoard;
-import board.GameBoard.boardIterator;
 import board.Location;
 import exceptions.InvalidMoveException;
 import fileIO.FileIO;
@@ -17,16 +13,13 @@ import fileIO.FileIO;
 public class GameMaster {
 	private boolean whiteTurn = true;
 	private GameBoard board = new GameBoard();
-//	private ConsoleUI conUI = new ConsoleUI();
 	Pattern placePattern = Pattern.compile("(?<type>[KQBNRP])(?<color>[LD])(?<location>[A-H][1-8])");
 	Pattern movePattern = Pattern.compile("((?<origin>[A-H][1-8])\\s(?<destination>[A-H][1-8])[\\*\\s]?){1,2}");
-//	private HashMap<Location, ArrayList<Location>> allMoves = new HashMap<>();
 		
 	//Constructors
 	public GameMaster(String filePath){
 		getMovesFromFile("..\\setup.txt");
-		printTest();
-//		conUI.printBoard(board);
+		printBoard();
 		getMovesFromFile(filePath);
 	}
 	
@@ -35,13 +28,14 @@ public class GameMaster {
 		if(validMove(origin, destination)){
 			System.out.println(origin + " to " + destination);
 			board.movePiece(destination, origin);
+			if(isInCheck()) System.out.println("Check!");
 			whiteTurn = !whiteTurn;
 		}
 		else throw new InvalidMoveException(origin + " to " + destination + " is not a valid move.");
 	}
 	
 	//Private Methods
-	//File Loader
+	//Retrieve set of moves from a text file
 	private void getMovesFromFile(String filePath){
 		String[] moves = new FileIO(filePath).getDataFromFile();
 		for(String command : moves){
@@ -54,6 +48,8 @@ public class GameMaster {
 			}
 		}
 	}
+	//Place piece
+	//TODO: Make it invalid to place a piece once the board has been set up
 	private void placePiece(String command, Matcher placeMatch){
 		boolean white;
 		char pieceType = placeMatch.group("type").charAt(0);
@@ -65,13 +61,14 @@ public class GameMaster {
 			}
 		}
 	}
+	//Move piece
 	private void movePiece(String command, Matcher moveMatch){
 		Location origin = null, destination = null;
 		try {
 			origin = new Location(moveMatch.group("origin"));
 			destination = new Location(moveMatch.group("destination"));
 			move(origin, destination);
-			printTest();
+			printBoard();
 			if(command.length() > 5 && moveMatch.matches()){
 				castle(command, moveMatch);
 			}
@@ -79,6 +76,7 @@ public class GameMaster {
 			System.out.println(e.getMessage());
 		}
 	}
+	//Perform a castling move(will not yet validate)
 	private void castle(String command, Matcher moveMatch){
 		//TODO: Castling has to allow the rook to jump
 		Location origin = null, destination = null;
@@ -86,15 +84,15 @@ public class GameMaster {
 			origin = new Location(moveMatch.group("origin"));
 			destination = new Location(moveMatch.group("destination"));
 			move(origin, destination);
-			printTest();
+			printBoard();
 		} catch (IllegalStateException ex){
 			System.out.println(ex.getMessage());
 		} catch (InvalidMoveException e) {
 			System.out.println(e.getMessage());
 		}
 	}
-	
-	private void printTest(){
+	//Print the board to the console
+	private void printBoard(){
 		Iterator<Piece> ip = board.iterator();
 		int count = 1;
 		System.out.print("|");
@@ -107,46 +105,26 @@ public class GameMaster {
 		}
 		System.out.println();
 	}
-	
-	/*
-	private void findAllMoves(){
-		for(int i=0; i<board.getBoard().length; i++){
-			for(int j=0; j<board.getBoard()[i].length; j++){
-				Location currentLocation = new Location(i, j);
-				if(board.getPieceAt(currentLocation) != null){
-					ArrayList<Location> moves = getDestinations(currentLocation);
-					if(moves.size() > 0) allMoves.put(currentLocation, moves);
-				}
-			}
-		}
-	}
-	private ArrayList<Location> getDestinations(Location origin){
-		ArrayList<Location> moves = new ArrayList<>();
-		for(int i=0; i<board.getBoard().length; i++){
-			for(int j=0; j<board.getBoard()[i].length; j++){
-				Location currentLocation = new Location(i,j);
-				if(validMove(origin, currentLocation)) moves.add(currentLocation);
-			}
-		}
-		return moves;
-	}
-	*/
-	
+	//Return if enemy is in check
 	private boolean isInCheck(){
-		GameBoard.boardIterator ip = (boardIterator)board.iterator();
+		GameBoard.boardIterator ip = board.new boardIterator();
+		Piece pc;
+		Location kingLocation = null;
 		while(ip.hasNext()){
-			Piece p = ip.next();
-			if(p.getClass().getSimpleName().equals("King") && p.getWhiteness() != whiteTurn){
-				Location kingLocation = ip.getPieceLocation();
-				//call isAllowed(new Queen(whiteTurn), kingLocation, --dest--) for all squares
-				//and isAllowed(new Knight(whiteTurn), kingLocation, --dest--) for all squares
-				//if any valid moves are found, the king is in check
-				//TODO: find all accessible squares for a queen or knight from this location
+			pc = ip.next();
+			if(pc != null && pc.getClass().getSimpleName().equals("King") && pc.getWhiteness() != whiteTurn){
+				kingLocation = ip.getPieceLocation();
 			}
 		}
+		ip = board.new boardIterator();
+		do {
+			pc = ip.next();
+			if(validMove(ip.getPieceLocation(), kingLocation)) return true;
+		} while(ip.hasNext());
 		return false;
 	}
 	//Move Checks
+	//Return if move is valid based on turn and move checks below
 	private boolean validMove(Location origin, Location destination){
 		if(isEmpty(origin)) return false;
 		if(board.getPieceAt(origin).getWhiteness() == whiteTurn){
@@ -157,9 +135,11 @@ public class GameMaster {
 		}
 		return false;
 	}
+	//Return if origin is null(doesn't contain a piece)
 	private boolean isEmpty(Location xy){
 		return board.getPieceAt(xy) == null;
 	}
+	//Return if move to destination conforms to the rules for piece at origin
 	private boolean isAllowed(Location origin, Location destination){
 		Piece currentPiece = board.getPieceAt(origin);
 		if(currentPiece.getClass().getSimpleName().equals("Pawn") && !isEmpty(destination)){
@@ -167,9 +147,11 @@ public class GameMaster {
 		}
 		else return board.getPieceAt(origin).validMove((destination.X - origin.X), (destination.Y - origin.Y));
 	}
-	private boolean isAllowed(Piece piece, Location origin, Location destination){
+	//Overloaded method for potential use in verifying checkmate and for AI use
+	/*private boolean isAllowed(Piece piece, Location origin, Location destination){
 		return piece.validMove((destination.X - origin.X), (destination.Y - origin.Y));
-	}
+	}*/
+	//Recursively check one square at a time in a piece's path to it's destination and return if it's clear
 	private boolean isClear(Location org, Location dest, boolean whiteness){
 		boolean clear = false;
 		int xD = dest.X - org.X; 
@@ -183,6 +165,7 @@ public class GameMaster {
 		else if(!isEmpty(nextXY)) clear = whiteness != board.getPieceAt(nextXY).getWhiteness();
 		return clear;
 	}
+	//Return if piece is a Knight (isClear method unnecessary)
 	private boolean canJump(Location origin){
 		return board.getPieceAt(origin).getClass().getSimpleName().equals("Knight");
 	}

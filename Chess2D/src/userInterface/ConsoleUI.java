@@ -1,7 +1,7 @@
 package userInterface;
-
-import pieces.Piece;
-import board.GameBoard;
+//TODO: Consider eliminating this class in favor of allowing the Controller to handle console interaction
+//import pieces.Piece;
+//import board.GameBoard;
 
 public class ConsoleUI implements UI {
 //	public void printBoard(GameBoard board){

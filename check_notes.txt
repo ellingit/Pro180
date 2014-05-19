@@ -1,0 +1,4 @@
+//call isAllowed(new Queen(whiteTurn), kingLocation, --dest--) for all squares
+//and isAllowed(new Knight(whiteTurn), kingLocation, --dest--) for all squares
+//if any valid moves are found, the king is in check
+//TODO: find all accessible squares for a queen or knight from this location

@@ -1,3 +1,8 @@
+Checkmate...
+check board configurations
+overload board constructor? (GM constructor?) to take in a board config
+
+
 effects of moving a piece
 everything in the moved piece's path
 available moves of any piece that could have used the destination(on or through)

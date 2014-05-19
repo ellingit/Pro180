@@ -14,7 +14,6 @@ public class Rook extends Piece {
 
 	@Override
 	public boolean validMove(int x, int y) {
-		if(x != 0 && y != 0) return false;
-		else return true;
+		return (x == 0) ^ (y == 0);
 	}
 }

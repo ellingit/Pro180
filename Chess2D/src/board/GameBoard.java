@@ -7,6 +7,7 @@ import pieces.*;
 public class GameBoard implements Iterable<Piece> {
 	private static final int BOARD_SIZE = 8;
 	private Piece[][] board = new Piece[BOARD_SIZE][BOARD_SIZE];
+	
 	public Piece getPieceAt(Location xy){
 		return board[xy.Y][xy.X];
 	}
@@ -19,6 +20,10 @@ public class GameBoard implements Iterable<Piece> {
 	}
 	public int getBoardSize(){
 		return BOARD_SIZE;
+	}
+	public Location[] locatePieces(Piece piece){
+		//TODO: Fill this in...with code...good code
+		return null;
 	}
 	@Override
 	public Iterator<Piece> iterator() {

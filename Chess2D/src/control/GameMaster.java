@@ -69,6 +69,7 @@ public class GameMaster {
 			destination = new Location(moveMatch.group("destination"));
 			move(origin, destination);
 			printBoard();
+			//TODO: Fix the magic number 5
 			if(command.length() > 5 && moveMatch.matches()){
 				castle(command, moveMatch);
 			}
@@ -108,33 +109,33 @@ public class GameMaster {
 	//Return if enemy is in check
 	private boolean isInCheck(){
 		GameBoard.boardIterator ip = board.new boardIterator();
-		Piece pc;
+		Piece piece;
 		Location kingLocation = null;
-		while(ip.hasNext()){
-			pc = ip.next();
-			if(pc != null && pc.getClass().getSimpleName().equals("King") && pc.getWhiteness() != whiteTurn){
+		while(kingLocation == null && ip.hasNext()){
+			piece = ip.next();
+			if(piece != null && piece instanceof King && piece.getWhiteness() != whiteTurn){
 				kingLocation = ip.getPieceLocation();
 			}
 		}
+		boolean canAttack = false;
 		ip = board.new boardIterator();
-		do {
-			pc = ip.next();
-			if(validMove(ip.getPieceLocation(), kingLocation)) return true;
-		} while(ip.hasNext());
-		return false;
+		while(!canAttack && ip.hasNext()){
+			ip.next();
+			canAttack = (validMove(ip.getPieceLocation(), kingLocation));
+		} 
+		return canAttack;
 	}
 	//Move Checks
 	//Return if move is valid based on turn and move checks below
 	private boolean validMove(Location origin, Location destination){
-		if(isEmpty(origin)) return false;
-		if(board.getPieceAt(origin).getWhiteness() == whiteTurn){
-			if(isAllowed(origin, destination)){
-				if(canJump(origin)) return true;
-				else if(isClear(origin, destination, board.getPieceAt(origin).getWhiteness())) return true;
-			}
+		boolean valid = false;
+		if(valid = !isEmpty(origin)){
+			valid = board.getPieceAt(origin).getWhiteness() == whiteTurn && 
+					isAllowed(origin, destination) && 
+					(canJump(origin) || isClear(origin, destination, board.getPieceAt(origin).getWhiteness()));
 		}
-		return false;
-	}
+		return valid;
+	}	
 	//Return if origin is null(doesn't contain a piece)
 	private boolean isEmpty(Location xy){
 		return board.getPieceAt(xy) == null;
@@ -142,7 +143,7 @@ public class GameMaster {
 	//Return if move to destination conforms to the rules for piece at origin
 	private boolean isAllowed(Location origin, Location destination){
 		Piece currentPiece = board.getPieceAt(origin);
-		if(currentPiece.getClass().getSimpleName().equals("Pawn") && !isEmpty(destination)){
+		if(!isEmpty(destination) && currentPiece instanceof Pawn){
 			return ((Pawn)currentPiece).validMove((destination.X - origin.X), (destination.Y - origin.Y), true);
 		}
 		else return board.getPieceAt(origin).validMove((destination.X - origin.X), (destination.Y - origin.Y));
@@ -164,9 +165,22 @@ public class GameMaster {
 			else clear = false;
 		else if(!isEmpty(nextXY)) clear = whiteness != board.getPieceAt(nextXY).getWhiteness();
 		return clear;
+		//TODO: Fix this
+//		boolean clear = true;
+//		int xD = dest.X - org.X; 
+//		int yD = dest.Y - org.Y;
+//		if(xD != 0) xD /= Math.abs(xD);
+//		if(yD != 0) yD /= Math.abs(yD);
+//		Location nextXY;
+//		do {
+//			nextXY = new Location(org.X + xD, org.Y + yD);
+//			clear = !isEmpty(nextXY);
+//		} while(clear && nextXY.X != dest.X || nextXY.Y != dest.Y);
+//		if(!isEmpty(nextXY)) clear = whiteness != board.getPieceAt(nextXY).getWhiteness();
+//		return clear;
 	}
 	//Return if piece is a Knight (isClear method unnecessary)
 	private boolean canJump(Location origin){
-		return board.getPieceAt(origin).getClass().getSimpleName().equals("Knight");
+		return board.getPieceAt(origin) instanceof Knight;
 	}
 }

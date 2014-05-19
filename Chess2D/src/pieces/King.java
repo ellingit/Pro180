@@ -12,7 +12,6 @@ public class King extends Piece {
 	private boolean inCheck = false;
 	@Override
 	public boolean validMove(int x, int y) {
-		if(Math.abs(x) > 1 || Math.abs(y) > 1) return false;
-		else return true;
+		return Math.abs(x) <= 1 && Math.abs(y) <= 1;
 	}
 }

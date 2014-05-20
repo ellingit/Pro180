@@ -1,10 +1,15 @@
 package control;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import pieces.*;
+import pieces.King;
+import pieces.Knight;
+import pieces.Pawn;
+import pieces.Piece;
+import pieces.PieceType;
 import board.GameBoard;
 import board.Location;
 import exceptions.InvalidMoveException;
@@ -14,7 +19,8 @@ public class GameMaster {
 	private boolean whiteTurn = true;
 	private GameBoard board = new GameBoard();
 	Pattern placePattern = Pattern.compile("(?<type>[KQBNRP])(?<color>[LD])(?<location>[A-H][1-8])");
-	Pattern movePattern = Pattern.compile("((?<origin>[A-H][1-8])\\s(?<destination>[A-H][1-8])[\\*\\s]?){1,2}");
+	Pattern movePattern = Pattern.compile("((?<origin>[A-H][1-8])\\s(?<destination>[A-H][1-8])[\\*\\s]?)"
+										+ "((?<origin2>[A-H][1-8])\\s(?<destination2>[A-H][1-8])[\\*\\s]?)?");
 		
 	//Constructors
 	public GameMaster(String filePath){
@@ -25,11 +31,24 @@ public class GameMaster {
 	
 	//Public Methods
 	public void move(Location origin, Location destination) throws InvalidMoveException {
+		if(moveChecksKing(board, origin, destination)){
+			throw new InvalidMoveException(origin + " to " + destination + " will result in check.");
+		}
 		if(validMove(origin, destination)){
 			System.out.println(origin + " to " + destination);
-			board.movePiece(destination, origin);
-			if(isInCheck()) System.out.println("Check!");
+			if(attemptingToCastle(origin, destination)) castleWithChecks(origin, destination);
+			else board.movePiece(origin, destination);
+			board.getPieceAt(destination).moved();
+			if(isInCheck(false)) System.out.println("Check!");
+			printBoard();
 			whiteTurn = !whiteTurn;
+			if(isInCheckMate()){
+				String gameOver = "Checkmate!";
+				if(whiteTurn) gameOver += " Black Wins.";
+				else gameOver += " White Wins.";
+				System.err.println(gameOver);
+				System.exit(0);
+			}
 		}
 		else throw new InvalidMoveException(origin + " to " + destination + " is not a valid move.");
 	}
@@ -68,26 +87,6 @@ public class GameMaster {
 			origin = new Location(moveMatch.group("origin"));
 			destination = new Location(moveMatch.group("destination"));
 			move(origin, destination);
-			printBoard();
-			//TODO: Fix the magic number 5
-			if(command.length() > 5 && moveMatch.matches()){
-				castle(command, moveMatch);
-			}
-		} catch (InvalidMoveException e) {
-			System.out.println(e.getMessage());
-		}
-	}
-	//Perform a castling move(will not yet validate)
-	private void castle(String command, Matcher moveMatch){
-		//TODO: Castling has to allow the rook to jump
-		Location origin = null, destination = null;
-		try{
-			origin = new Location(moveMatch.group("origin"));
-			destination = new Location(moveMatch.group("destination"));
-			move(origin, destination);
-			printBoard();
-		} catch (IllegalStateException ex){
-			System.out.println(ex.getMessage());
 		} catch (InvalidMoveException e) {
 			System.out.println(e.getMessage());
 		}
@@ -102,40 +101,68 @@ public class GameMaster {
 			if(p != null) System.out.print(" " + p.toString() + " |");
 			else System.out.print(" - |");
 			if(++count % board.getBoardSize()-1 == 0) 
-				if(count<63) System.out.print("\n|");
+				if(count < Math.pow(board.getBoardSize(), 2)) System.out.print("\n|");
 		}
 		System.out.println();
 	}
 	//Return if enemy is in check
-	private boolean isInCheck(){
-		GameBoard.boardIterator ip = board.new boardIterator();
+	private boolean isInCheck(boolean sameColor){
+		GameBoard.boardIterator iterator = board.new boardIterator();
 		Piece piece;
 		Location kingLocation = null;
-		while(kingLocation == null && ip.hasNext()){
-			piece = ip.next();
-			if(piece != null && piece instanceof King && piece.getWhiteness() != whiteTurn){
-				kingLocation = ip.getPieceLocation();
+		while(kingLocation == null && iterator.hasNext()){
+			piece = iterator.next();
+			if(piece != null && piece instanceof King && piece.getWhiteness() == (sameColor == whiteTurn)){
+				kingLocation = iterator.getPieceLocation();
 			}
 		}
 		boolean canAttack = false;
-		ip = board.new boardIterator();
-		while(!canAttack && ip.hasNext()){
-			ip.next();
-			canAttack = (validMove(ip.getPieceLocation(), kingLocation));
+		iterator = board.new boardIterator();
+		while(!canAttack && iterator.hasNext()){
+			iterator.next();
+			canAttack = (validMove(iterator.getPieceLocation(), kingLocation));
+			if(canAttack) ((King)board.getPieceAt(kingLocation)).check();
 		} 
 		return canAttack;
 	}
-	//Move Checks
 	//Return if move is valid based on turn and move checks below
 	private boolean validMove(Location origin, Location destination){
 		boolean valid = false;
 		if(valid = !isEmpty(origin)){
-			valid = board.getPieceAt(origin).getWhiteness() == whiteTurn && 
+			valid = board.getPieceAt(origin).getWhiteness() == whiteTurn &&
 					isAllowed(origin, destination) && 
 					(canJump(origin) || isClear(origin, destination, board.getPieceAt(origin).getWhiteness()));
 		}
 		return valid;
-	}	
+	}
+	//Return if requested move will leave or put the king in check
+	private boolean moveChecksKing(GameBoard thisBoard, Location origin, Location destination){
+		new GameBoard(thisBoard).movePiece(origin, destination);
+		return isInCheck(true);
+	}
+	//Return if the king is in checkmate
+	private boolean isInCheckMate(){
+		GameBoard.boardIterator iterator = board.new boardIterator();
+		boolean stillInCheck = true;
+		while(stillInCheck && iterator.hasNext()){
+			iterator.next();
+			for(Location location : getPossibleMoves(iterator.getPieceLocation())){
+				if(!moveChecksKing(board, iterator.getPieceLocation(), location)) stillInCheck = false;
+			}
+		}
+		return stillInCheck;
+	}
+	//Return all possible moves for a piece at a given location
+	private ArrayList<Location> getPossibleMoves(Location origin){
+		ArrayList<Location> moves = new ArrayList<>();
+		for(int i=0; i<board.getBoardSize(); i++){
+			for(int j=0; j<board.getBoardSize(); j++){
+				Location currentLocation = new Location(i,j);
+				if(validMove(origin, currentLocation)) moves.add(currentLocation);
+			}
+		}
+		return moves;
+	}
 	//Return if origin is null(doesn't contain a piece)
 	private boolean isEmpty(Location xy){
 		return board.getPieceAt(xy) == null;
@@ -145,13 +172,8 @@ public class GameMaster {
 		Piece currentPiece = board.getPieceAt(origin);
 		if(!isEmpty(destination) && currentPiece instanceof Pawn){
 			return ((Pawn)currentPiece).validMove((destination.X - origin.X), (destination.Y - origin.Y), true);
-		}
-		else return board.getPieceAt(origin).validMove((destination.X - origin.X), (destination.Y - origin.Y));
+		} else return board.getPieceAt(origin).validMove((destination.X - origin.X), (destination.Y - origin.Y));
 	}
-	//Overloaded method for potential use in verifying checkmate and for AI use
-	/*private boolean isAllowed(Piece piece, Location origin, Location destination){
-		return piece.validMove((destination.X - origin.X), (destination.Y - origin.Y));
-	}*/
 	//Recursively check one square at a time in a piece's path to it's destination and return if it's clear
 	private boolean isClear(Location org, Location dest, boolean whiteness){
 		boolean clear = false;
@@ -174,13 +196,41 @@ public class GameMaster {
 //		Location nextXY;
 //		do {
 //			nextXY = new Location(org.X + xD, org.Y + yD);
-//			clear = !isEmpty(nextXY);
-//		} while(clear && nextXY.X != dest.X || nextXY.Y != dest.Y);
+//			clear = isEmpty(nextXY);
+//		} while(clear && (nextXY.X != dest.X || nextXY.Y != dest.Y));
 //		if(!isEmpty(nextXY)) clear = whiteness != board.getPieceAt(nextXY).getWhiteness();
 //		return clear;
 	}
 	//Return if piece is a Knight (isClear method unnecessary)
 	private boolean canJump(Location origin){
 		return board.getPieceAt(origin) instanceof Knight;
+	}
+	//Return if proposed move is an attempted castle (King moves 2 spaces)
+	private boolean attemptingToCastle(Location origin, Location destination){
+		return !isEmpty(origin) && board.getPieceAt(origin) instanceof King &&
+				Math.abs(destination.X - origin.X) == 2;
+	}
+	//Attempt to perform a proper castle, return whether successful
+	private boolean castleWithChecks(Location origin, Location destination){
+		boolean successfulCastle = false;
+		Location rookLocation;
+		if(!board.getPieceAt(origin).hasMoved() && !((King)board.getPieceAt(origin)).hasBeenInCheck()){
+			if(destination.X - origin.X > 0){
+				rookLocation = new Location(destination.X+1, destination.Y);
+				if(!board.getPieceAt(rookLocation).hasMoved()){
+					board.movePiece(origin, destination);
+					board.movePiece(rookLocation, new Location(destination.X-1, destination.Y));
+					successfulCastle = true;
+				}
+			} else {
+				rookLocation = new Location(destination.X-2, destination.Y);
+				if(!board.getPieceAt(rookLocation).hasMoved()){
+					board.movePiece(origin, destination);
+					board.movePiece(rookLocation, new Location(destination.X+1, destination.Y));
+					successfulCastle = true;
+				}
+			}
+		}
+		return successfulCastle;
 	}
 }

@@ -10,8 +10,6 @@ public class Pawn extends Piece {
 		
 	}
 
-	private boolean hasMoved = false;
-
 	@Override	
 	public boolean validMove(int x, int y){ 
 		if(!isWhite) y *= -1;
@@ -20,8 +18,5 @@ public class Pawn extends Piece {
 	public boolean validMove(int x, int y, boolean capturing){
 		if(!isWhite) y *= -1;
 		return y == 1 && Math.abs(x) == 1;
-	}
-	public void moved(){
-		hasMoved = true;
 	}
 }

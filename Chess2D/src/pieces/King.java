@@ -8,10 +8,17 @@ public class King extends Piece {
 	public King() {
 
 	}
-	private boolean hasMoved = false;
-	private boolean inCheck = false;
+	
+	private boolean everChecked = false;
 	@Override
 	public boolean validMove(int x, int y) {
-		return Math.abs(x) <= 1 && Math.abs(y) <= 1;
+		return (Math.abs(x) <= 1 && Math.abs(y) <= 1) || 		//standard move
+			   (Math.abs(x) == 2 && !hasMoved && !everChecked); //castling
+	}
+	public void check(){
+		everChecked = true;
+	}
+	public boolean hasBeenInCheck(){
+		return everChecked;
 	}
 }

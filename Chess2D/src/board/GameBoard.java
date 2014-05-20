@@ -8,22 +8,34 @@ public class GameBoard implements Iterable<Piece> {
 	private static final int BOARD_SIZE = 8;
 	private Piece[][] board = new Piece[BOARD_SIZE][BOARD_SIZE];
 	
+	public GameBoard(){
+		
+	}
+	public GameBoard(GameBoard source){
+		board = source.cloneBoard();
+	}
+	
 	public Piece getPieceAt(Location xy){
 		return board[xy.Y][xy.X];
 	}
 	public void placePiece(Location newXY, Piece piece){
 		board[newXY.Y][newXY.X] = piece;
 	}
-	public void movePiece(Location newXY, Location prevXY){
+	public void movePiece(Location prevXY, Location newXY){
 		board[newXY.Y][newXY.X] = board[prevXY.Y][prevXY.X];
 		board[prevXY.Y][prevXY.X] = null;
 	}
 	public int getBoardSize(){
 		return BOARD_SIZE;
 	}
-	public Location[] locatePieces(Piece piece){
-		//TODO: Fill this in...with code...good code
-		return null;
+	public Piece[][] cloneBoard(){
+		Piece[][] clone = new Piece[BOARD_SIZE][BOARD_SIZE];
+		for(int y=0; y<board.length; y++){
+			for(int x=0; x<board[y].length; x++){
+				clone[x][y] = board[x][y];
+			}
+		}
+		return clone;
 	}
 	@Override
 	public Iterator<Piece> iterator() {

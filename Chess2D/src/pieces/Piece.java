@@ -1,7 +1,7 @@
 package pieces;
 
 public abstract class Piece{
-	protected boolean isWhite;
+	protected boolean isWhite, hasMoved;
 	
 	public abstract boolean validMove(int x, int y);
 	
@@ -13,6 +13,12 @@ public abstract class Piece{
 	}
 	public boolean getWhiteness(){
 		return isWhite;
+	}
+	public void moved(){
+		hasMoved = true;
+	}
+	public boolean hasMoved(){
+		return hasMoved;
 	}
 	@Override
 	public String toString(){

@@ -1,6 +1,15 @@
 Checkmate...
 check board configurations
 overload board constructor? (GM constructor?) to take in a board config
+getBoardState method in GameBoard?
+
+ways out: move, block, capture
+King has valid move (can't move into check)
+Any friendly piece has valid block or capture move (path from king to attacker)
+Move by king or any other piece can't place king in check (general rule...do this first?)
+if in check and move doesn't fix it, it isn't a valid move (essentially the same as the rule above seeing as that move would leave the king in check)
+
+move piece on temp board, check for check, invalidate move if in check
 
 
 effects of moving a piece
@@ -43,3 +52,9 @@ private ArrayList<Location> getDestinations(Location origin){
 	}
 	return moves;
 }
+
+ALTERNATIVE isAllowed() METHOD:
+//Overloaded method for potential use in verifying checkmate and for AI use
+	/*private boolean isAllowed(Piece piece, Location origin, Location destination){
+		return piece.validMove((destination.X - origin.X), (destination.Y - origin.Y));
+	}*/

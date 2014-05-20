@@ -3,7 +3,7 @@ package control;
 public class GameDriver {
 
 	public static void main(String[] args) {
-		new GameMaster("..\\moves.txt");
+		new GameMaster("..\\kasparov_vs_topalov.txt");
 	}
 
 }

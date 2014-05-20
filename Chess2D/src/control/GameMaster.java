@@ -34,14 +34,14 @@ public class GameMaster {
 		if(moveChecksKing(origin, destination)){
 			throw new InvalidMoveException(origin + " to " + destination + " will result in check.");
 		}
-		if(validMove(testBoard, origin, destination)){
+		if(validMove(testBoard, origin, destination, whiteTurn)){
 			System.out.println(origin + " to " + destination);
 			if(attemptingToCastle(testBoard, origin, destination)) castleWithChecks(testBoard, origin, destination);
 			else board.movePiece(origin, destination);
 			board.getPieceAt(destination).moved();
-			if(isInCheck(board, false)) System.out.println("Check!");
 			printBoard();
 			whiteTurn = !whiteTurn;
+			if(isInCheck(board, false)) System.out.println("Check!");
 			if(isInCheckMate(board)){
 				String gameOver = "Checkmate!";
 				if(whiteTurn) gameOver += " Black Wins.";
@@ -106,13 +106,13 @@ public class GameMaster {
 		System.out.println();
 	}
 	//Return if enemy is in check
-	private boolean isInCheck(GameBoard testBoard, boolean sameColor){
+	private boolean isInCheck(GameBoard testBoard, boolean isWhiteTurn){
 		GameBoard.boardIterator iterator = testBoard.new boardIterator();
 		Piece piece;
 		Location kingLocation = null;
 		while(kingLocation == null && iterator.hasNext()){
 			piece = iterator.next();
-			if(piece != null && piece instanceof King && piece.getWhiteness() == (sameColor == whiteTurn)){
+			if(piece != null && piece instanceof King && piece.getWhiteness() == isWhiteTurn){//color check isn't working in test cases
 				kingLocation = iterator.getPieceLocation();
 			}
 		}
@@ -120,16 +120,16 @@ public class GameMaster {
 		iterator = testBoard.new boardIterator();
 		while(!canAttack && iterator.hasNext()){
 			iterator.next();
-			canAttack = (validMove(testBoard, iterator.getPieceLocation(), kingLocation));
+			canAttack = (validMove(testBoard, iterator.getPieceLocation(), kingLocation, !whiteTurn));
 			if(canAttack) ((King)testBoard.getPieceAt(kingLocation)).check();
 		} 
 		return canAttack;
 	}
 	//Return if move is valid based on turn and move checks below
-	private boolean validMove(GameBoard testBoard, Location origin, Location destination){
+	private boolean validMove(GameBoard testBoard, Location origin, Location destination, boolean isWhiteTurn){
 		boolean valid = false;
-		if(valid = !isEmpty(origin)){
-			valid = testBoard.getPieceAt(origin).getWhiteness() == whiteTurn &&
+		if(valid = !isEmpty(testBoard, origin)){
+			valid = testBoard.getPieceAt(origin).getWhiteness() == isWhiteTurn &&
 					isAllowed(testBoard, origin, destination) && 
 					(canJump(testBoard, origin) || isClear(testBoard, origin, destination, testBoard.getPieceAt(origin).getWhiteness()));
 		}
@@ -139,7 +139,7 @@ public class GameMaster {
 	private boolean moveChecksKing(Location origin, Location destination){
 		GameBoard testBoard = new GameBoard(board);
 		testBoard.movePiece(origin, destination);
-		return isInCheck(testBoard, true);
+		return isInCheck(testBoard, !whiteTurn);
 	}
 	//Return if the king is in checkmate
 	private boolean isInCheckMate(GameBoard testBoard){
@@ -159,19 +159,19 @@ public class GameMaster {
 		for(int i=0; i<testBoard.getBoardSize(); i++){
 			for(int j=0; j<testBoard.getBoardSize(); j++){
 				Location currentLocation = new Location(i,j);
-				if(validMove(testBoard, origin, currentLocation)) moves.add(currentLocation);
+				if(validMove(testBoard, origin, currentLocation, whiteTurn)) moves.add(currentLocation);
 			}
 		}
 		return moves;
 	}
 	//Return if origin is null(doesn't contain a piece)
-	private boolean isEmpty(Location xy){
-		return board.getPieceAt(xy) == null;
+	private boolean isEmpty(GameBoard testBoard, Location xy){
+		return testBoard.getPieceAt(xy) == null;
 	}
 	//Return if move to destination conforms to the rules for piece at origin
 	private boolean isAllowed(GameBoard testBoard, Location origin, Location destination){
 		Piece currentPiece = testBoard.getPieceAt(origin);
-		if(!isEmpty(destination) && currentPiece instanceof Pawn){
+		if(!isEmpty(testBoard, destination) && currentPiece instanceof Pawn){
 			return ((Pawn)currentPiece).validMove((destination.X - origin.X), (destination.Y - origin.Y), true);
 		} else return testBoard.getPieceAt(origin).validMove((destination.X - origin.X), (destination.Y - origin.Y));
 	}
@@ -184,23 +184,10 @@ public class GameMaster {
 		if(yD != 0) yD /= Math.abs(yD);
 		Location nextXY = new Location(org.X + xD, org.Y + yD);
 		if(!(clear = nextXY.X == dest.X && nextXY.Y == dest.Y)) 
-			if(isEmpty(nextXY)) return isClear(testBoard, nextXY, dest, whiteness);
+			if(isEmpty(testBoard, nextXY)) return isClear(testBoard, nextXY, dest, whiteness);
 			else clear = false;
-		else if(!isEmpty(nextXY)) clear = whiteness != testBoard.getPieceAt(nextXY).getWhiteness();
+		else if(!isEmpty(testBoard, nextXY)) clear = whiteness != testBoard.getPieceAt(nextXY).getWhiteness();
 		return clear;
-		//TODO: Fix this
-//		boolean clear = true;
-//		int xD = dest.X - org.X; 
-//		int yD = dest.Y - org.Y;
-//		if(xD != 0) xD /= Math.abs(xD);
-//		if(yD != 0) yD /= Math.abs(yD);
-//		Location nextXY;
-//		do {
-//			nextXY = new Location(org.X + xD, org.Y + yD);
-//			clear = isEmpty(nextXY);
-//		} while(clear && (nextXY.X != dest.X || nextXY.Y != dest.Y));
-//		if(!isEmpty(nextXY)) clear = whiteness != board.getPieceAt(nextXY).getWhiteness();
-//		return clear;
 	}
 	//Return if piece is a Knight (isClear method unnecessary)
 	private boolean canJump(GameBoard testBoard, Location origin){
@@ -208,7 +195,7 @@ public class GameMaster {
 	}
 	//Return if proposed move is an attempted castle (King moves 2 spaces)
 	private boolean attemptingToCastle(GameBoard testBoard, Location origin, Location destination){
-		return !isEmpty(origin) && testBoard.getPieceAt(origin) instanceof King &&
+		return !isEmpty(testBoard, origin) && testBoard.getPieceAt(origin) instanceof King &&
 				Math.abs(destination.X - origin.X) == 2;
 	}
 	//Attempt to perform a proper castle, return whether successful

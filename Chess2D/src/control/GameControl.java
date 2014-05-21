@@ -27,10 +27,12 @@ public class GameControl {
 			try {
 				makeMove(motherBoard, getNextMove());
 				whiteTurn = !whiteTurn;
+				if(isInCheck(motherBoard, whiteTurn)) System.out.println("Check!");
 				printBoard(motherBoard);
 			} catch(InvalidMoveException ex) {
-				System.err.println(ex.getMessage());
+				System.out.println(ex.getMessage());
 			} catch(NullPointerException ex) {
+				//TODO: this is constantly waiting for more moves...
 				//no more moves
 			}
 		}
@@ -55,6 +57,7 @@ public class GameControl {
 	private Move getNextMove(){
 		return moveio.getMove();
 	}
+	
 	private boolean makeMove(GameBoard context, Move move) throws InvalidMoveException{
 		boolean success = false;
 		if(isValidMove(context, move, whiteTurn) &&	!resultsInCheck(context, move, whiteTurn)){
@@ -64,6 +67,7 @@ public class GameControl {
 		} else throw new InvalidMoveException(move + " is not a valid move.");
 		return success;
 	}
+	
 	private boolean isValidMove(GameBoard context, Move move, boolean turnColor){
 		boolean validMove = false;
 		if(!isEmpty(context, move.FROM)){
@@ -87,6 +91,7 @@ public class GameControl {
 			if(isEmpty(context, nextXY)) return pathIsClear(context, new Move(nextXY, move.TO), pieceIsWhite);
 			else clear = false;
 		else if(!isEmpty(context, nextXY)) clear = pieceIsWhite != context.getPieceAt(nextXY).getWhiteness();
+		if(context.getPieceAt(move.FROM) instanceof Knight) clear = true;
 		return clear;
 	}
 	private boolean isLegalMove(GameBoard context, Move move){
@@ -96,7 +101,7 @@ public class GameControl {
 	}
 	
 	private boolean resultsInCheck(GameBoard context, Move move, boolean testingWhite){
-		GameBoard testBoard = new GameBoard(motherBoard);
+		GameBoard testBoard = new GameBoard(context);
 		testBoard.movePiece(move.FROM, move.TO);
 		boolean inCheck = isInCheck(context, testingWhite);
 		testBoard.movePiece(move.TO, move.FROM);
@@ -115,17 +120,26 @@ public class GameControl {
 		while(iterator.hasNext()){
 			Piece piece = iterator.next();
 			ArrayList<Location> moves = new ArrayList<>();
-			if(piece != null){
+			if(!inCheck && piece != null){
 				moves = getAllMovesFrom(context, iterator.getPieceLocation());
 				inCheck = moves.contains(kingLocation);
 			}
 		}
 		return inCheck;
 	}
-//	private boolean checkmate(GameBoard context, boolean testingWhite){
-//		return false;
-//	}
-	
+	private boolean checkmate(GameBoard context, boolean testingWhite){
+		boolean mate = true;
+		GameBoard.boardIterator iterator = context.new boardIterator();
+		while(mate && iterator.hasNext())
+			Piece piece = iterator.next();
+			ArrayList<Location> moves = getAllMovesFrom(context, iterator.getPieceLocation());
+			for(Location location : moves){
+				if(!resultsInCheck(context, new Move(iterator.getPieceLocation(), location), piece.getWhiteness()))
+					mate = false;
+			}
+		return mate;
+	}
+
 	private ArrayList<Location> getAllMovesFrom(GameBoard context, Location from){
 		ArrayList<Location> moves = new ArrayList<>();
 		GameBoard.boardIterator iterator = context.new boardIterator();

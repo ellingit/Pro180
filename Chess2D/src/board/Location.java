@@ -12,6 +12,10 @@ public class Location {
 	}
 	
 	@Override
+	public boolean equals(Object location){
+		return ((Location)location).X == this.X && ((Location)location).Y == this.Y;
+	}
+	@Override
 	public String toString(){
 		String display = "";
 		display += (char)(X + 'A');

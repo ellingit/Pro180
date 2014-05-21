@@ -1,7 +1,7 @@
 package control;
 
 import java.util.LinkedList;
-import java.util.Scanner;
+//import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -9,38 +9,48 @@ import board.Location;
 import fileIO.FileIO;
 
 public class MoveIO {
-	LinkedList<Move> moveCommands;
+	LinkedList<Move> moveCommands; 
+	LinkedList<String> placeCommands;
 	Pattern movePattern = Pattern.compile("((?<origin>[A-H][1-8])\\s(?<destination>[A-H][1-8])[\\*\\s]?)"
 										+ "((?<origin2>[A-H][1-8])\\s(?<destination2>[A-H][1-8])[\\*\\s]?)?");
 	
 	public MoveIO(String filePath){
 		loadMovesFromFile(filePath);
-		loadMoveFromStream();
+//		loadMoveFromStream();
 	}
 	
 	public void sendMove(Move move){
 		System.out.print(move);
 	}
 	public Move getMove(){
-		return moveCommands.pop();
+		return moveCommands.poll();
+	}
+	public String getPlacement(){
+		return placeCommands.poll();
+	}
+	public boolean hasNextPlacement(){
+		return !placeCommands.isEmpty();
 	}
 	
 	private void loadMovesFromFile(String filePath){
 		String[] moves = new FileIO(filePath).getDataFromFile();
 		moveCommands = new LinkedList<>();
+		placeCommands = new LinkedList<>();
 		for(String command : moves){
 			Matcher moveMatch = movePattern.matcher(command);
 			if(moveMatch.matches()){
 				moveCommands.offer(getNextMoveCommand(command, moveMatch));
+			} else {
+				placeCommands.offer(command);
 			}
 		}
 	}
-	private void loadMoveFromStream(){
-		Scanner scant = new Scanner(System.in);
-		String input = scant.nextLine();
-		Matcher moveMatch = movePattern.matcher(input);
-		moveCommands.offer(getNextMoveCommand(input, moveMatch));
-	}
+//	private void loadMoveFromStream(){
+//		Scanner scant = new Scanner(System.in);
+//		String input = scant.nextLine();
+//		Matcher moveMatch = movePattern.matcher(input);
+//		moveCommands.offer(getNextMoveCommand(input, moveMatch));
+//	}
 	private Move getNextMoveCommand(String command, Matcher moveMatch){
 		Location origin = null, destination = null;
 		origin = new Location(moveMatch.group("origin"));

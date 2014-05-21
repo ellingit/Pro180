@@ -1,6 +1,8 @@
 package control;
 
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import exceptions.InvalidMoveException;
 import pieces.*;
@@ -14,42 +16,65 @@ public class GameControl {
 	
 	public GameControl(String filepath){
 		moveio = new MoveIO(filepath);
+		while(moveio.hasNextPlacement()){
+			placePiece(motherBoard, moveio.getPlacement());
+		}
+		printBoard(motherBoard);
 	}
 	
 	public void play(){
 		while(!gameOver){
 			try {
-				makeMove(getNextMove());
+				makeMove(motherBoard, getNextMove());
 				whiteTurn = !whiteTurn;
+				printBoard(motherBoard);
 			} catch(InvalidMoveException ex) {
 				System.err.println(ex.getMessage());
+			} catch(NullPointerException ex) {
+				//no more moves
 			}
 		}
 	}
 	
+	private void placePiece(GameBoard context, String placeCommand){
+		
+		Pattern placePattern = Pattern.compile("(?<type>[KQBNRP])(?<color>[LD])(?<location>[A-H][1-8])");
+		Matcher placeMatch = placePattern.matcher(placeCommand);
+		
+		if(placeMatch.matches()){
+			char pieceType = placeMatch.group("type").charAt(0);
+			boolean white = placeMatch.group("color").equals("L");
+			Location location = new Location(placeMatch.group("location"));
+			for(PieceType type : PieceType.values()){ 
+				if(type.getKey() == pieceType){
+					context.placePiece(location, type.makePiece(white));
+				}
+			}
+		} else System.err.println("Invalid Piece Placement");
+	}
 	private Move getNextMove(){
 		return moveio.getMove();
 	}
-	private boolean makeMove(Move move) throws InvalidMoveException{
+	private boolean makeMove(GameBoard context, Move move) throws InvalidMoveException{
 		boolean success = false;
-		if(isValidMove(motherBoard, move, whiteTurn) &&
-				!resultsInCheck(motherBoard, move, whiteTurn)){
-			motherBoard.movePiece(move.FROM, move.TO);
+		if(isValidMove(context, move, whiteTurn) &&	!resultsInCheck(context, move, whiteTurn)){
+			context.movePiece(move.FROM, move.TO);
+			System.out.println(move.FROM + " to " + move.TO);
 			success = true;
 		} else throw new InvalidMoveException(move + " is not a valid move.");
 		return success;
 	}
 	private boolean isValidMove(GameBoard context, Move move, boolean turnColor){
 		boolean validMove = false;
-		if(!isEmpty(move.FROM)){
+		if(!isEmpty(context, move.FROM)){
 			validMove = context.getPieceAt(move.FROM).getWhiteness() == turnColor &&
 						pathIsClear(context, move, context.getPieceAt(move.FROM).getWhiteness()) &&
 						isLegalMove(context, move);
 		}
 		return validMove;
 	}
-	private boolean isEmpty(Location location){
-		return motherBoard.getPieceAt(location) == null;
+	private boolean isEmpty(GameBoard context, Location location){
+		return context.getPieceAt(location) == null;
 	}
 	private boolean pathIsClear(GameBoard context, Move move, boolean pieceIsWhite){
 		boolean clear = false;
@@ -57,10 +82,11 @@ public class GameControl {
 		int yD = move.TO.Y - move.FROM.Y;
 		if(xD != 0) xD /= Math.abs(xD);
 		if(yD != 0) yD /= Math.abs(yD);
-		Location nextXY;
-		do { nextXY = new Location(move.FROM.X + xD, move.FROM.Y + yD); } 
-		while(move.FROM != move.TO && isEmpty(nextXY));
-		if(!isEmpty(nextXY)) clear = (pieceIsWhite != context.getPieceAt(nextXY).getWhiteness());
+		Location nextXY = new Location(move.FROM.X + xD, move.FROM.Y + yD);
+		if(!(clear = nextXY.X == move.TO.X && nextXY.Y == move.TO.Y)) 
+			if(isEmpty(context, nextXY)) return pathIsClear(context, new Move(nextXY, move.TO), pieceIsWhite);
+			else clear = false;
+		else if(!isEmpty(context, nextXY)) clear = pieceIsWhite != context.getPieceAt(nextXY).getWhiteness();
 		return clear;
 	}
 	private boolean isLegalMove(GameBoard context, Move move){
@@ -110,5 +136,19 @@ public class GameControl {
 				moves.add(iterator.getPieceLocation());
 		}
 		return moves;
+	}
+	
+	private void printBoard(GameBoard context){
+		GameBoard.boardIterator iterator = context.new boardIterator();
+		int count = 1;
+		System.out.print("|");
+		while(iterator.hasNext()){
+			Piece p = iterator.next();
+			if(p != null) System.out.print(" " + p.toString() + " |");
+			else System.out.print(" - |");
+			if(++count % context.getBoardSize()-1 == 0) 
+				if(count < Math.pow(context.getBoardSize(), 2)) System.out.print("\n|");
+		}
+		System.out.println();
 	}
 }

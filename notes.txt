@@ -58,3 +58,18 @@ ALTERNATIVE isAllowed() METHOD:
 	/*private boolean isAllowed(Piece piece, Location origin, Location destination){
 		return piece.validMove((destination.X - origin.X), (destination.Y - origin.Y));
 	}*/
+	
+	
+	//TODO: Fix this
+//		boolean clear = true;
+//		int xD = dest.X - org.X; 
+//		int yD = dest.Y - org.Y;
+//		if(xD != 0) xD /= Math.abs(xD);
+//		if(yD != 0) yD /= Math.abs(yD);
+//		Location nextXY;
+//		do {
+//			nextXY = new Location(org.X + xD, org.Y + yD);
+//			clear = isEmpty(nextXY);
+//		} while(clear && (nextXY.X != dest.X || nextXY.Y != dest.Y));
+//		if(!isEmpty(nextXY)) clear = whiteness != board.getPieceAt(nextXY).getWhiteness();
+//		return clear;

@@ -3,6 +3,13 @@ check board configurations
 overload board constructor? (GM constructor?) to take in a board config
 getBoardState method in GameBoard?
 
+
+all valid moves
+^ check first, then remove moves that leave the king in check?
+pass the list to the incheck method?
+
+
+
 ways out: move, block, capture
 King has valid move (can't move into check)
 Any friendly piece has valid block or capture move (path from king to attacker)

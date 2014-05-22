@@ -25,6 +25,9 @@ public class MoveIO {
 	public Move getMove(){
 		return moveCommands.poll();
 	}
+	public boolean hasNextMove(){
+		return !moveCommands.isEmpty();
+	}
 	public String getPlacement(){
 		return placeCommands.poll();
 	}

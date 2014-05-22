@@ -12,7 +12,7 @@ public class Knight extends Piece {
 	}
 	@Override
 	public String toString(){
-		if(isWhite) return this.getClass().getSimpleName().substring(1,2).toUpperCase();
-		else return this.getClass().getSimpleName().substring(1,2).toLowerCase();
+		if(isWhite) return "N";
+		else return "n";
 	}
 }

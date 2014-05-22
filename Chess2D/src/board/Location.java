@@ -16,6 +16,10 @@ public class Location {
 		return ((Location)location).X == this.X && ((Location)location).Y == this.Y;
 	}
 	@Override
+	public int hashCode() {
+		return this.X*73 + this.Y*71;
+	}
+	@Override
 	public String toString(){
 		String display = "";
 		display += (char)(X + 'A');

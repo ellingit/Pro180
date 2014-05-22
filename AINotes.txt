@@ -1,0 +1,10 @@
+open moves on the board
+power pieces (piece value)
+K - MAX, Q - 75, N - 50, B,R - 35, P - 10
+moves to favorable board positions - stats
+
+BP 42 -> 57% chance
+BP 43 -> 45% chance
+
+15 moves 42
+8 moves 43

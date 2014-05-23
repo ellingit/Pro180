@@ -1,3 +1,9 @@
+Piece iterator...iterate over every possible move based on their legal moves
+for every piece that can move, return an iterator
+could be short-circuited
+
+
+
 Checkmate...
 check board configurations
 overload board constructor? (GM constructor?) to take in a board config

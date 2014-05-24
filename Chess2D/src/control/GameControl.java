@@ -63,8 +63,12 @@ public class GameControl {
 		
 	private boolean makeMove(GameBoard context, Move move) throws InvalidMoveException{
 		boolean success = false;
-		//TODO: use iterator to see if the move is available
-		if(!isEmpty(context, move.FROM) && !resultsInCheck(context, move, whiteTurn)){
+		moveIterator mIterator = new moveIterator(context, move.FROM);
+		boolean moveAvailable = false;
+		while(mIterator.hasNext()){
+			if(mIterator.next() == move.TO) moveAvailable = true;
+		} 
+		if(!isEmpty(context, move.FROM) && moveAvailable && !resultsInCheck(context, move, whiteTurn)){
 			context.movePiece(move.FROM, move.TO);
 			System.out.println(move.FROM + " to " + move.TO);
 			success = true;
@@ -74,7 +78,7 @@ public class GameControl {
 	
 	private boolean isValidMove(GameBoard context, Move move, boolean turnColor){
 		boolean validMove = false;
-		if(!isEmpty(context, move.FROM)){
+		if(move != null && !isEmpty(context, move.FROM)){
 			validMove = context.getPieceAt(move.FROM).getWhiteness() == turnColor
 						&& pathIsClear(context, move, context.getPieceAt(move.FROM).getWhiteness())
 						&& isLegalMove(context, move);
@@ -97,6 +101,7 @@ public class GameControl {
 		} else if(!isEmpty(context, nextXY)){
 			clear = pieceIsWhite != context.getPieceAt(nextXY).getWhiteness();
 		}
+		System.out.println(clear);
 		return clear;
 	}
 	private boolean isKnight(GameBoard context, Move move){
@@ -135,7 +140,7 @@ public class GameControl {
 		while(!inCheck && bIterator.hasNext()){
 			if(bIterator.next() != null){
 				moveIterator mIterator = new moveIterator(context, bIterator.getPieceLocation());
-				while(!inCheck && mIterator.hasNext()){
+				while(!inCheck && mIterator.hasNext()){//TODO: This line is throwing it into an endless loop
 					if(mIterator.next() == testLocation) inCheck = true;
 				}
 			}
@@ -172,9 +177,9 @@ public class GameControl {
 	}
 
 	private class moveIterator implements Iterator<Location>{
-		Location startLocation;
-		GameBoard context;
-		GameBoard.boardIterator bIterator;
+		private Location startLocation, currentLocation;
+		private GameBoard context;
+		private GameBoard.boardIterator bIterator;
 		
 		moveIterator(GameBoard context, Location location){
 			startLocation = location;
@@ -189,14 +194,20 @@ public class GameControl {
 
 		@Override
 		public Location next() {
-			Location nextLocation = null;
-			Move test = null;
-			do {
+			Location nextValidMove = null;
+			Move nextMove = null;
+			while(bIterator.hasNext() && nextMove == null && bIterator.getPieceLocation() == null){
 				bIterator.next();
-				nextLocation = bIterator.getPieceLocation();
-				test = new Move(startLocation, nextLocation);
-			} while(isValidMove(context, test, context.getPieceAt(startLocation).getWhiteness()));
-			return nextLocation;
+				nextMove = new Move(startLocation, bIterator.getPieceLocation());
+			}
+			if(nextMove != null && isValidMove(context, nextMove, context.getPieceAt(nextMove.FROM).getWhiteness())){
+				nextValidMove = bIterator.getPieceLocation();
+				currentLocation = bIterator.getPieceLocation();
+			} else System.out.println("nothing");
+			return nextValidMove;
+		}
+		public Location getCurrent(){
+			return currentLocation;
 		}
 
 		@Override

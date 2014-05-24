@@ -1,19 +1,3 @@
-Piece iterator...iterate over every possible move based on their legal moves
-for every piece that can move, return an iterator
-could be short-circuited
-
-
-
-Checkmate...
-check board configurations
-overload board constructor? (GM constructor?) to take in a board config
-getBoardState method in GameBoard?
-
-
-all valid moves
-^ check first, then remove moves that leave the king in check?
-pass the list to the incheck method?
-
 
 
 ways out: move, block, capture
@@ -86,3 +70,24 @@ ALTERNATIVE isAllowed() METHOD:
 //		} while(clear && (nextXY.X != dest.X || nextXY.Y != dest.Y));
 //		if(!isEmpty(nextXY)) clear = whiteness != board.getPieceAt(nextXY).getWhiteness();
 //		return clear;
+
+attack tactics <----
+Fork
+Discovered Attack
+Skewer
+
+looking for patterns instead of memorizing moves
+
+Queen - 9
+Rook - 5
+Bishop - 3
+Knight - 3
+Pawn - 1
+
+never move a pawn unless it helps develop a power piece
+
+3 parts to a game
+
+opening, midgame, endgame
+
+always seek favorable endgame

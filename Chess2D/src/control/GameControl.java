@@ -25,12 +25,12 @@ public class GameControl {
 	public void play(){
 		while(!gameOver && moveio.hasNextMove()){
 			try {
-				if(isInCheck(motherBoard, locatePiece(motherBoard, "King", whiteTurn))){
-					String checkMessage = "";
-					if(whiteTurn) checkMessage += "White ";
-					else checkMessage += "Black ";
-					System.out.println(checkMessage + "is in Check!");
-				}
+//				if(isInCheck(motherBoard, locatePiece(motherBoard, "King", whiteTurn))){
+//					String checkMessage = "";
+//					if(whiteTurn) checkMessage += "White ";
+//					else checkMessage += "Black ";
+//					System.out.println(checkMessage + "is in Check!");
+//				}
 				makeMove(motherBoard, moveio.getMove());
 				whiteTurn = !whiteTurn;
 				printBoard(motherBoard);
@@ -138,11 +138,17 @@ public class GameControl {
 		GameBoard.boardIterator bIterator = context.new boardIterator();
 		boolean inCheck = false;
 		while(!inCheck && bIterator.hasNext()){
-			if(bIterator.next() != null){
-				moveIterator mIterator = new moveIterator(context, bIterator.getPieceLocation());
-				while(!inCheck && mIterator.hasNext()){//TODO: This line is throwing it into an endless loop
-					if(mIterator.next() == testLocation) inCheck = true;
+			Piece piece = bIterator.next();
+			if(piece != null){
+				GameBoard.boardIterator bIterator2 = context.new boardIterator();
+				while(!inCheck && bIterator2.hasNext()){
+					Move testMove = new Move(bIterator.getPieceLocation(), testLocation);
+					if(isValidMove(context, testMove, piece.getWhiteness())) inCheck = true;
 				}
+//				moveIterator mIterator = new moveIterator(context, bIterator.getPieceLocation());
+//				while(!inCheck && mIterator.hasNext()){//TODO: This line is throwing it into an endless loop
+//					if(mIterator.next() == testLocation) inCheck = true;
+//				}
 			}
 		}
 		return inCheck;
@@ -196,14 +202,8 @@ public class GameControl {
 		public Location next() {
 			Location nextValidMove = null;
 			Move nextMove = null;
-			while(bIterator.hasNext() && nextMove == null && bIterator.getPieceLocation() == null){
-				bIterator.next();
-				nextMove = new Move(startLocation, bIterator.getPieceLocation());
-			}
-			if(nextMove != null && isValidMove(context, nextMove, context.getPieceAt(nextMove.FROM).getWhiteness())){
-				nextValidMove = bIterator.getPieceLocation();
-				currentLocation = bIterator.getPieceLocation();
-			} else System.out.println("nothing");
+			bIterator.next();
+			nextMove = new Move(startLocation, bIterator.getPieceLocation());
 			return nextValidMove;
 		}
 		public Location getCurrent(){

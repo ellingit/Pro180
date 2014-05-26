@@ -113,8 +113,8 @@ public class GameMaster {
 		Location kingLocation = null;
 		while(kingLocation == null && iterator.hasNext()){
 			piece = iterator.next();
-			if(piece != null && piece instanceof King && piece.getWhiteness() == turnColor){
-				whiteKing = piece.getWhiteness();
+			if(piece != null && piece instanceof King && piece.isWhite() == turnColor){
+				whiteKing = piece.isWhite();
 				kingLocation = iterator.getPieceLocation();
 			}
 		}
@@ -132,7 +132,7 @@ public class GameMaster {
 		Location kingLocation = null;
 		while(kingLocation == null && iterator.hasNext()){
 			piece = iterator.next();
-			if(piece != null && piece instanceof King && piece.getWhiteness() == turnColor){
+			if(piece != null && piece instanceof King && piece.isWhite() == turnColor){
 				kingLocation = iterator.getPieceLocation();
 			}
 		}
@@ -148,9 +148,9 @@ public class GameMaster {
 	private boolean validMove(Location origin, Location destination, boolean turnColor){
 		boolean valid = false;
 		if(valid = !isEmpty(origin)){
-			valid = board.getPieceAt(origin).getWhiteness() == turnColor &&
+			valid = board.getPieceAt(origin).isWhite() == turnColor &&
 					isAllowed(origin, destination) && 
-					(canJump(origin) || isClear(origin, destination, board.getPieceAt(origin).getWhiteness()));
+					(canJump(origin) || isClear(origin, destination, board.getPieceAt(origin).isWhite()));
 		}
 		return valid;
 	}
@@ -158,9 +158,9 @@ public class GameMaster {
 	private boolean validMove(Location origin, Location destination, boolean turnColor, GameBoard testBoard){
 		boolean valid = false;
 		if(valid = !isEmpty(testBoard, origin)){
-			valid = testBoard.getPieceAt(origin).getWhiteness() == turnColor &&
+			valid = testBoard.getPieceAt(origin).isWhite() == turnColor &&
 					isAllowed(testBoard, origin, destination) && 
-					(canJump(origin) || isClear(origin, destination, testBoard.getPieceAt(origin).getWhiteness()));
+					(canJump(origin) || isClear(origin, destination, testBoard.getPieceAt(origin).isWhite()));
 		}
 		return valid;
 	}
@@ -188,7 +188,7 @@ public class GameMaster {
 			Piece piece = iterator.next();
 			for(Location location : getPossibleMoves(iterator.getPieceLocation())){
 				//TODO: somehow this is not checking the right board...or something?
-				if(!moveChecksKing(board, iterator.getPieceLocation(), location) && piece.getWhiteness() == whiteTurn){
+				if(!moveChecksKing(board, iterator.getPieceLocation(), location) && piece.isWhite() == whiteTurn){
 					System.out.println(location);
 					stillInCheck = false;
 				}
@@ -238,7 +238,7 @@ public class GameMaster {
 		if(!(clear = nextXY.X == dest.X && nextXY.Y == dest.Y)) 
 			if(isEmpty(nextXY)) return isClear(nextXY, dest, whiteness);
 			else clear = false;
-		else if(!isEmpty(nextXY)) clear = whiteness != board.getPieceAt(nextXY).getWhiteness();
+		else if(!isEmpty(nextXY)) clear = whiteness != board.getPieceAt(nextXY).isWhite();
 		return clear;
 	}
 	//Return if piece is a Knight (isClear method unnecessary)

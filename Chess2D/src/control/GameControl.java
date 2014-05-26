@@ -1,7 +1,6 @@
 package control;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,6 +24,7 @@ public class GameControl {
 	
 	public void play(){
 		while(!gameOver && moveio.hasNextMove()){
+			setMoves(motherBoard);
 			try {
 				if(isInCheck(motherBoard, whiteTurn)){
 					String checkMessage = "";
@@ -35,6 +35,7 @@ public class GameControl {
 				makeMove(motherBoard, getNextMove());
 				whiteTurn = !whiteTurn;
 				printBoard(motherBoard);
+				setMoves(motherBoard);
 				if(checkmate(motherBoard, whiteTurn)){
 					System.err.println("Checkmate!");
 					System.exit(0);
@@ -67,9 +68,9 @@ public class GameControl {
 	
 	private boolean makeMove(GameBoard context, Move move) throws InvalidMoveException{
 		boolean success = false;
-		MoveCollection allMoves = new MoveCollection(context);
-		if(!isEmpty(context, move.FROM) && allMoves.containsKey(move.FROM)
-				&& allMoves.get(move.FROM).contains(move.TO) && !resultsInCheck(context, move, whiteTurn)){
+		if(!isEmpty(context, move.FROM) && context.getPieceAt(move.FROM) != null
+				&& context.getPieceAt(move.FROM).getAvailableMoves().contains(move.TO) 
+				&& !resultsInCheck(context, move, whiteTurn)){
 			context.movePiece(move.FROM, move.TO);
 			System.out.println(move.FROM + " to " + move.TO);
 			success = true;
@@ -80,8 +81,8 @@ public class GameControl {
 	private boolean isValidMove(GameBoard context, Move move, boolean turnColor){
 		boolean validMove = false;
 		if(!isEmpty(context, move.FROM)){
-			validMove = context.getPieceAt(move.FROM).getWhiteness() == turnColor
-						&& pathIsClear(context, move, context.getPieceAt(move.FROM).getWhiteness())
+			validMove = context.getPieceAt(move.FROM).isWhite() == turnColor
+						&& pathIsClear(context, move, context.getPieceAt(move.FROM).isWhite())
 						&& isLegalMove(context, move);
 		}
 		return validMove;
@@ -100,7 +101,7 @@ public class GameControl {
 			if(isEmpty(context, nextXY) || isKnight(context, move)) return pathIsClear(context, new Move(nextXY, move.TO), pieceIsWhite);
 			else clear = false;
 		} else if(!isEmpty(context, nextXY)){
-			clear = pieceIsWhite != context.getPieceAt(nextXY).getWhiteness();
+			clear = pieceIsWhite != context.getPieceAt(nextXY).isWhite();
 		}
 		return clear;
 	}
@@ -130,44 +131,59 @@ public class GameControl {
 		Location kingLocation = null;
 		while(iterator.hasNext()){
 			Piece piece = iterator.next();
-			if(piece != null && piece instanceof King && piece.getWhiteness() == testingWhite)
+			if(piece != null && piece instanceof King && piece.isWhite() == testingWhite)
 				kingLocation = iterator.getPieceLocation();
 		}
 		iterator = context.new boardIterator();
-		MoveCollection allMoves = new MoveCollection(context);
 		while(!inCheck && iterator.hasNext()){
-			if(iterator.next() != null && allMoves.get(iterator.getPieceLocation()) != null){
-				inCheck = allMoves.get(iterator.getPieceLocation()).contains(kingLocation);
+			Piece piece = iterator.next();
+			if(piece != null){
+				ArrayList<Location> availableMoves = piece.getAvailableMoves();
+				if(availableMoves != null && !availableMoves.isEmpty())
+					inCheck = availableMoves.contains(kingLocation);
 			}
 		}
 		return inCheck;
 	}
 	private boolean checkmate(GameBoard context, boolean testingWhite){
 		boolean mate = true;
-		MoveCollection allMoves = new MoveCollection(context);
-		for(Location key : allMoves.keySet()){
-			for(Location mv : allMoves.get(key)){
-				if(isValidMove(context, new Move(key, mv), testingWhite) && !resultsInCheck(context, new Move(key, mv), testingWhite)){
-					mate = false;
+		GameBoard.boardIterator iterator = context.new boardIterator();
+		while(mate && iterator.hasNext()){
+			Piece piece = iterator.next();
+			if(piece != null && piece.isWhite() == testingWhite){
+				for(Location location : piece.getAvailableMoves()){
+					Move move = new Move(iterator.getPieceLocation(), location);
+					if(!resultsInCheck(context, move, testingWhite)){
+						mate = false;
+					}
 				}
 			}
 		}
 		return mate;
 	}
 	
-	private ArrayList<Location> getAllMovesFrom(GameBoard context, Location from){
+	private void setAllMovesFor(GameBoard context, Location from){
 		ArrayList<Location> moves = new ArrayList<>();
 		if(context.getPieceAt(from) != null){ 
 			GameBoard.boardIterator iterator = context.new boardIterator();
 			while(iterator.hasNext()){
 				iterator.next();
 				Move test = new Move(from, iterator.getPieceLocation());
-				if(isValidMove(context, test, context.getPieceAt(from).getWhiteness())){
+				if(isValidMove(context, test, context.getPieceAt(from).isWhite())){
 					moves.add(iterator.getPieceLocation());
 				}
 			}
 		}
-		return moves;
+		context.getPieceAt(from).setAvailableMoves(moves);
+	}
+	private void setMoves(GameBoard context){
+		GameBoard.boardIterator iterator = context.new boardIterator();
+		while(iterator.hasNext()){
+			Piece piece = iterator.next();
+			if(piece != null){
+				setAllMovesFor(context, iterator.getPieceLocation());
+			}
+		}
 	}
 	
 	private void printBoard(GameBoard context){
@@ -182,24 +198,5 @@ public class GameControl {
 				if(count < Math.pow(context.getBoardSize(), 2)) System.out.print("\n|");
 		}
 		System.out.println();
-	}
-
-	private class MoveCollection extends HashMap<Location, ArrayList<Location>>{
-		private static final long serialVersionUID = 1L;
-		GameBoard context;
-		MoveCollection(GameBoard context){
-			super();
-			this.context = context;
-			loadMoves();
-		}
-		private void loadMoves(){
-			GameBoard.boardIterator iterator = context.new boardIterator();
-			while(iterator.hasNext()){
-				Piece piece = iterator.next();
-				if(piece != null){
-					this.put(iterator.getPieceLocation(), getAllMovesFrom(context, iterator.getPieceLocation()));
-				}
-			}
-		}
 	}
 }

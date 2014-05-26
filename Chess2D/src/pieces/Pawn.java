@@ -12,11 +12,11 @@ public class Pawn extends Piece {
 
 	@Override	
 	public boolean validMove(int x, int y){ 
-		if(!isWhite) y *= -1;
+		if(!white) y *= -1;
 		return (y == 1 && x == 0) || (y == 2 && !hasMoved && x==0);
 	}
 	public boolean validMove(int x, int y, boolean capturing){
-		if(!isWhite) y *= -1;
+		if(!white) y *= -1;
 		return y == 1 && Math.abs(x) == 1;
 	}
 }

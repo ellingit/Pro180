@@ -41,10 +41,6 @@ public class GameControl {
 				}
 			} catch(InvalidMoveException ex) {
 				System.out.println(ex.getMessage());
-			} catch(NullPointerException ex) {
-				//no more moves
-				ex.printStackTrace();
-				System.exit(0);
 			}
 		}
 	}

@@ -13,6 +13,7 @@ public class GameControl {
 	private MoveIO moveio;
 	private boolean gameOver = false;
 	private boolean whiteTurn = true;
+	private Player whitePlayer, blackPlayer;
 	
 	public GameControl(String filepath){
 		moveio = new MoveIO(filepath);
@@ -20,6 +21,8 @@ public class GameControl {
 			placePiece(motherBoard, moveio.getPlacement());
 		}
 		printBoard(motherBoard);
+		whitePlayer = new Player(true);
+		blackPlayer = new Player(false);
 	}
 	
 	public void play(){
@@ -47,7 +50,6 @@ public class GameControl {
 	}
 	
 	private void placePiece(GameBoard context, String placeCommand){
-		
 		Pattern placePattern = Pattern.compile("(?<type>[KQBNRP])(?<color>[LD])(?<location>[A-H][1-8])");
 		Matcher placeMatch = placePattern.matcher(placeCommand);
 		
@@ -162,6 +164,17 @@ public class GameControl {
 		return mate;
 	}
 	
+	public ArrayList<Location> getPlayablePositions(GameBoard context, boolean isWhite){
+		ArrayList<Location> locations = new ArrayList<>();
+		GameBoard.boardIterator iterator = context.new boardIterator();
+		while(iterator.hasNext()){
+			Piece piece = iterator.next();
+			if(piece != null && piece.isWhite() == isWhite && !piece.getAvailableMoves().isEmpty()){
+				locations.add(iterator.getPieceLocation());
+			}
+		}
+		return locations;
+	}
 	private void setAllMovesFor(GameBoard context, Location from){
 		ArrayList<Location> moves = new ArrayList<>();
 		if(context.getPieceAt(from) != null){ 
@@ -185,6 +198,7 @@ public class GameControl {
 			}
 		}
 	}
+	
 	
 	private void printBoard(GameBoard context){
 		GameBoard.boardIterator iterator = context.new boardIterator();

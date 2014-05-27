@@ -12,7 +12,7 @@ public class GameControl {
 	private GameBoard motherBoard = new GameBoard();
 	private MoveIO moveio;
 	private boolean gameOver = false;
-	private boolean whiteTurn = true;
+//	private boolean whiteTurn = true;
 	private Player whitePlayer, blackPlayer;
 	
 	public GameControl(String filepath){
@@ -26,26 +26,51 @@ public class GameControl {
 	}
 	
 	public void play(){
-		while(!gameOver && moveio.hasNextMove()){
-			setMoves(motherBoard);
-			try {
-				if(isInCheck(motherBoard, whiteTurn)){
-					String checkMessage = "";
-					if(whiteTurn) checkMessage += "White ";
-					else checkMessage += "Black ";
-					System.out.println(checkMessage + "is in Check!");
-				}
-				makeMove(motherBoard, getNextMove());
-				whiteTurn = !whiteTurn;
-				printBoard(motherBoard);
-				setMoves(motherBoard);
-				if(checkmate(motherBoard, whiteTurn)){
-					System.err.println("Checkmate!");
-					System.exit(0);
-				}
-			} catch(InvalidMoveException ex) {
-				System.out.println(ex.getMessage());
-			}
+		while(!gameOver){ // && moveio.hasNextMove()){
+			takeTurn(whitePlayer);
+			printBoard(motherBoard);
+			takeTurn(blackPlayer);
+			printBoard(motherBoard);
+//			setMoves(motherBoard);
+//			try {
+//				if(isInCheck(motherBoard, whiteTurn)){
+//					String checkMessage = "";
+//					if(whiteTurn) checkMessage += "White ";
+//					else checkMessage += "Black ";
+//					System.out.println(checkMessage + "is in Check!");
+//				}
+//				makeMove(motherBoard, getNextMove());
+//				whiteTurn = !whiteTurn;
+//				printBoard(motherBoard);
+//				setMoves(motherBoard);
+//				if(checkmate(motherBoard, whiteTurn)){
+//					System.err.println("Checkmate!");
+//					System.exit(0);
+//				}
+//			} catch(InvalidMoveException ex) {
+//				System.out.println(ex.getMessage());
+//			}
+		}
+	}
+	private void takeTurn(Player player){
+		setMoves(motherBoard);
+		if(isInCheck(motherBoard, player.isWhite())){
+			String checkMessage = "";
+			if(player.isWhite()) checkMessage += "White ";
+			else checkMessage += "Black ";
+			System.out.println(checkMessage + "is in Check!");
+		}
+		if(checkmate(motherBoard, player.isWhite())){
+			System.err.println("Checkmate!");
+			System.exit(0);
+		}
+		ArrayList<Location> moveablePieces = getPlayablePositions(motherBoard, player.isWhite());
+		Location moveFrom = player.choosePiece(moveablePieces);
+		Location moveTo = player.chooseMove(motherBoard.getPieceAt(moveFrom).getAvailableMoves());
+		try {
+			makeMove(motherBoard, new Move(moveFrom, moveTo), player.isWhite());
+		} catch(InvalidMoveException ime){
+			System.err.println(ime.getMessage());
 		}
 	}
 	
@@ -64,15 +89,15 @@ public class GameControl {
 			}
 		} else System.err.println("Invalid Piece Placement");
 	}
-	private Move getNextMove(){
-		return moveio.getMove();
-	}
+//	private Move getNextMove(){
+//		return moveio.getMove();
+//	}
 	
-	private boolean makeMove(GameBoard context, Move move) throws InvalidMoveException{
+	private boolean makeMove(GameBoard context, Move move, boolean isWhite) throws InvalidMoveException{
 		boolean success = false;
 		if(!isEmpty(context, move.FROM) && context.getPieceAt(move.FROM) != null
 				&& context.getPieceAt(move.FROM).getAvailableMoves().contains(move.TO) 
-				&& !resultsInCheck(context, move, whiteTurn)){
+				&& !resultsInCheck(context, move, isWhite)){
 			context.movePiece(move.FROM, move.TO);
 			System.out.println(move.FROM + " to " + move.TO);
 			success = true;

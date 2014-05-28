@@ -1,6 +1,8 @@
 package control;
 
 import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,10 +15,11 @@ import board.GameBoard;
 import board.Location;
 import exceptions.InvalidMoveException;
 
-public class GameControl {
+public class GameControl implements Observer {
 	private GameBoard motherBoard = new GameBoard();
 	private MoveIO moveio;
-	private boolean gameOver = false;
+//	private boolean gameOver = false;
+	private Location selectedPieceLocation = null;
 	private Player whitePlayer, blackPlayer;
 	private Player currentPlayer;
 	
@@ -31,17 +34,19 @@ public class GameControl {
 		currentPlayer = whitePlayer;
 	}
 	
+	/*
 	public void play(){
 		while(!gameOver){
 			takeTurn(currentPlayer);
 			printBoard(motherBoard);
 			currentPlayer = (currentPlayer == whitePlayer) ? blackPlayer : whitePlayer;
 		}
-	}
+	}*/
 	public GameBoard getContext(){
 		return motherBoard;
 	}
 	
+	/*
 	private void takeTurn(Player player){
 		setMoves(motherBoard);
 		if(checkmate(motherBoard, player.isWhite())){
@@ -68,7 +73,7 @@ public class GameControl {
 				System.err.println(ime.getMessage());
 			}
 		}
-	}
+	}*/
 	
 	private void placePiece(GameBoard context, String placeCommand){
 		Pattern placePattern = Pattern.compile("(?<type>[KQBNRP])(?<color>[LD])(?<location>[A-H][1-8])");
@@ -158,9 +163,8 @@ public class GameControl {
 		while(!inCheck && iterator.hasNext()){
 			Piece piece = iterator.next();
 			if(piece != null){
-				ArrayList<Location> availableMoves = piece.getAvailableMoves();
-				if(availableMoves != null && !availableMoves.isEmpty())
-					inCheck = availableMoves.contains(kingLocation);
+				Move test = new Move(iterator.getPieceLocation(), kingLocation);
+				if(isValidMove(context, test, piece.isWhite())) inCheck = true;
 			}
 		}
 		return inCheck;
@@ -214,7 +218,8 @@ public class GameControl {
 			while(iterator.hasNext()){
 				iterator.next();
 				Move test = new Move(from, iterator.getPieceLocation());
-				if(isValidMove(context, test, context.getPieceAt(from).isWhite())){
+				if(isValidMove(context, test, context.getPieceAt(from).isWhite())
+						&& !resultsInCheck(context, test, context.getPieceAt(from).isWhite())){
 					moves.add(iterator.getPieceLocation());
 				}
 			}
@@ -225,12 +230,22 @@ public class GameControl {
 		GameBoard.boardIterator iterator = context.new boardIterator();
 		while(iterator.hasNext()){
 			Piece piece = iterator.next();
-			if(piece != null){
+			if(piece != null && piece.isWhite() == currentPlayer.isWhite()){
 				setAllMovesFor(context, iterator.getPieceLocation());
 			}
 		}
 	}
-		
+	
+	public void resetAllMoves(){
+		GameBoard.boardIterator iterator = motherBoard.new boardIterator();
+		while(iterator.hasNext()){
+			Piece piece = iterator.next();
+			if(piece != null){
+				piece.resetMoves();
+			}
+		}
+	}
+	
 	private void printBoard(GameBoard context){
 		GameBoard.boardIterator iterator = context.new boardIterator();
 		int count = 1;
@@ -245,4 +260,37 @@ public class GameControl {
 		System.out.println();
 	}
 
+	
+	@Override
+	public void update(Observable o, Object arg) {
+		if(arg != null && arg instanceof Location){
+			if(selectedPieceLocation != null){
+				try {
+					makeMove(motherBoard, new Move(selectedPieceLocation, (Location)arg), currentPlayer.isWhite());
+					motherBoard.getPieceAt((Location)arg).moved();
+					Location promoteLocation = isUpForPromotion(motherBoard, currentPlayer.isWhite());
+					if(promoteLocation != null){
+						PieceType promotion = currentPlayer.choosePieceType();
+						motherBoard.placePiece(promoteLocation, promotion.makePiece(currentPlayer.isWhite()));
+					}
+				} catch(InvalidMoveException ime){
+					System.err.println(ime.getMessage());
+				} finally {
+					currentPlayer = (currentPlayer == whitePlayer) ? blackPlayer : whitePlayer;
+					resetAllMoves();
+					setMoves(motherBoard);
+					selectedPieceLocation = null;
+				}
+			} else selectedPieceLocation = (Location)arg;
+		}
+		if(checkmate(motherBoard, currentPlayer.isWhite())){
+			String winner = !currentPlayer.isWhite() ? "White " : "Black ";
+			System.err.println("Checkmate! " + winner + "wins!");
+			System.exit(0);//TODO: end game without closing the gui
+		}
+		else if(isInCheck(motherBoard, currentPlayer.isWhite())){
+			String checkMessage = currentPlayer.isWhite() ? "White " : "Black ";
+			System.out.println(checkMessage + "is in Check!");
+		}
+	}
 }

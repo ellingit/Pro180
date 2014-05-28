@@ -11,27 +11,30 @@ import javax.swing.JPanel;
 
 import pieces.Piece;
 import control.GameControl;
+import control.Move;
 import board.GameBoard;
 import board.Location;
 
-public class GUI extends JFrame implements Observer {
-	private static final long serialVersionUID = 1L;
+public class GUI extends Observable implements Observer {
 	
+	private JFrame frame;
 	private GridLayout boardLayout = new GridLayout(8, 8);
 	private JPanel board;
 	private BoardSquare[][] allSquares;
 	private GameControl controller;
 	private GameBoard context;
+	private boolean pieceSelected = false;
 	
 	public GUI(){
+		frame = new JFrame();
 		controller = new GameControl("..\\setup.txt");
 		context = controller.getContext();
 		controller.setMoves(context);
 		init();		
 	}
 	private void init(){
-		this.setSize(700, 700);
-		this.setResizable(false);
+		frame.setSize(700, 700);
+		frame.setResizable(false);
 		board = new JPanel(boardLayout);
 		allSquares = new BoardSquare[8][8];
 		for(int y = allSquares.length-1; y >= 0; y--){
@@ -49,19 +52,20 @@ public class GUI extends JFrame implements Observer {
 				bs.setBackground(bs.color);
 				bs.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 				bs.getMouseController().addObserver(this);
+				bs.getMouseController().addObserver(controller);
 				allSquares[y][x] = bs;
 				board.add(bs);
 			}
 		}
-		this.add(board);
-		this.setVisible(true);
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.add(board);
+		frame.setVisible(true);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 	public void highlightSquare(Location location){
 		if(allSquares[location.Y][location.X].color == Color.DARK_GRAY){
 			allSquares[location.Y][location.X].setBackground(Color.getHSBColor(0.6F,0.5F,0.95F));
 		} else allSquares[location.Y][location.X].setBackground(Color.getHSBColor(0.6F,0.5F,0.65F));
-		repaint();
+		frame.repaint();
 	}
 	private void clearHighlights(){
 		for(BoardSquare[] row : allSquares){
@@ -73,11 +77,20 @@ public class GUI extends JFrame implements Observer {
 	
 	@Override
 	public void update(Observable o, Object arg) {
-		if(arg != null && context.getPieceAt(((BoardSquare)arg).getBoardLocation()) != null){
-			Piece focus = context.getPieceAt(((BoardSquare)arg).getBoardLocation());
-			for(Location possibility : focus.getAvailableMoves()){
-				highlightSquare(possibility);
+		controller.resetAllMoves();
+		controller.setMoves(context);
+		if(arg != null){
+			if(arg instanceof BoardSquare && context.getPieceAt(((BoardSquare)arg).getBoardLocation()) != null){
+				Piece focus = context.getPieceAt(((BoardSquare)arg).getBoardLocation());
+				for(int i = 0; i < focus.getAvailableMoves().size(); i++){
+					highlightSquare(focus.getAvailableMoves().get(i));
+				}
+			} else if(arg instanceof Location){
+				setChanged();
+				notifyObservers((Location)arg);
 			}
 		} else clearHighlights();
+		frame.repaint();
+		controller.setMoves(context);
 	}
 }

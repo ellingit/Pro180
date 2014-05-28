@@ -35,6 +35,12 @@ public abstract class Piece{
 	public void setAvailableMoves(ArrayList<Location> moves){
 		availableMoves = moves;
 	}
+	public void resetMoves(){
+		availableMoves = new ArrayList<>();
+	}
+	public void removeMove(Location location){
+		availableMoves.remove(location);
+	}
 	public ImageIcon getIcon(){
 		return icon;
 	}

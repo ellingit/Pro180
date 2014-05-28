@@ -1,7 +1,6 @@
 package userInterface;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.util.Observable;
 import java.util.Observer;
@@ -50,6 +49,7 @@ public class GUI extends JFrame implements Observer {
 				bs.setBackground(bs.color);
 				bs.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 				bs.getMouseController().addObserver(this);
+				allSquares[y][x] = bs;
 				board.add(bs);
 			}
 		}
@@ -58,18 +58,26 @@ public class GUI extends JFrame implements Observer {
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 	public void highlightSquare(Location location){
-		allSquares[location.Y][location.X].setBackground(Color.LIGHT_GRAY);
+		if(allSquares[location.Y][location.X].color == Color.DARK_GRAY){
+			allSquares[location.Y][location.X].setBackground(Color.getHSBColor(0.6F,0.5F,0.95F));
+		} else allSquares[location.Y][location.X].setBackground(Color.getHSBColor(0.6F,0.5F,0.65F));
 		repaint();
 	}
-	@Override
-	public void update(Observable o, Object arg) {
-		// TODO Auto-generated method stub
-		Piece focus = context.getPieceAt(((BoardSquare)arg).getBoardLocation());
-		if(focus != null){
-			for(Location possibility : focus.getAvailableMoves()){
-				System.err.println(possibility);
-				highlightSquare(possibility);
+	private void clearHighlights(){
+		for(BoardSquare[] row : allSquares){
+			for(BoardSquare square : row){
+				square.setBackground(square.color);
 			}
 		}
+	}
+	
+	@Override
+	public void update(Observable o, Object arg) {
+		if(arg != null && context.getPieceAt(((BoardSquare)arg).getBoardLocation()) != null){
+			Piece focus = context.getPieceAt(((BoardSquare)arg).getBoardLocation());
+			for(Location possibility : focus.getAvailableMoves()){
+				highlightSquare(possibility);
+			}
+		} else clearHighlights();
 	}
 }

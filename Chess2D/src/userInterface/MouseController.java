@@ -1,7 +1,6 @@
 package userInterface;
 
 import java.awt.Color;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -23,7 +22,8 @@ public class MouseController extends Observable implements MouseListener, MouseM
 	}
 	@Override
 	public void mouseExited(MouseEvent e){
-		e.getComponent().setBackground(((BoardSquare)e.getComponent()).color);
+		setChanged();
+		notifyObservers(null);
 	}
 	@Override
 	public void mouseDragged(MouseEvent e) {}

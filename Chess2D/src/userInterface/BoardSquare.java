@@ -2,8 +2,8 @@ package userInterface;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.util.ArrayList;
 
+import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
 import board.GameBoard;
@@ -32,7 +32,8 @@ public class BoardSquare extends JPanel {
 	public void paint(Graphics g){
 		super.paint(g);
 		if(context.getPieceAt(boardLocation) != null){
-			context.getPieceAt(boardLocation).getIcon().paintIcon(this, g, this.getHeight()/4, this.getWidth()/4);
+			ImageIcon icon = context.getPieceAt(boardLocation).getIcon();
+			icon.paintIcon(this, g, (this.getHeight() - icon.getIconHeight())/2, (this.getWidth() - icon.getIconWidth())/2);
 		}
 	}
 }

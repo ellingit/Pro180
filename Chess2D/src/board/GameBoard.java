@@ -28,12 +28,10 @@ public class GameBoard implements Iterable<Piece> {
 	public int getBoardSize(){
 		return BOARD_SIZE;
 	}
-	public Piece[][] cloneBoard(){
+	private Piece[][] cloneBoard(){
 		Piece[][] clone = new Piece[BOARD_SIZE][BOARD_SIZE];
 		for(int y=0; y<board.length; y++){
-			for(int x=0; x<board[y].length; x++){
-				clone[x][y] = board[x][y];
-			}
+			clone[y] = board[y].clone();
 		}
 		return clone;
 	}

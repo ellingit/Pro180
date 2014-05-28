@@ -3,6 +3,7 @@ package control;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import pieces.PieceType;
 import board.Location;
 
 public class Player {
@@ -13,29 +14,30 @@ public class Player {
 		this.white = white;
 	}
 	
-	public Location choosePiece(ArrayList<Location> moveablePieces){
+	public Location promptMenuSelection(ArrayList<Location> moveablePieces, String message){
 		for(int i = 0; i < moveablePieces.size(); i++){
 			System.out.println((i+1) + ") " + moveablePieces.get(i));
 		}
 		System.out.print("Select location of the piece you'd like to move: ");
 		int selection = -1;
-		while(scanLee.hasNextLine() && (selection < 0 || selection > moveablePieces.size())){
+		while(selection <= 0 || selection > moveablePieces.size()){
 			try {
+				if(selection != -1){
+					System.out.println("Invalid Selection");
+					System.out.print("Try Again: ");
+				}
 				selection = Integer.parseInt(scanLee.nextLine());
-			} catch (NumberFormatException nfe) {
-				System.out.println("Invalid Selection");
-				System.out.print("Try Again: ");
-			}
+			} catch (NumberFormatException nfe) { }
 		}
 		return moveablePieces.get(selection-1);
 	}
-	public Location chooseMove(ArrayList<Location> possibleMoves){
-		for(int i = 0; i < possibleMoves.size(); i++){
-			System.out.println((i+1) + ") " + possibleMoves.get(i));
+	public PieceType choosePieceType(){
+		for(int i = 0; i < PieceType.values().length; i++){
+			System.out.println((i+1) + ") " + PieceType.values()[i]);
 		}
-		System.out.print("Select location you'd like to move to: ");
+		System.out.print("Choose a piece type to promote to: ");
 		int selection = -1;
-		while(scanLee.hasNextLine() && (selection < 0 || selection > possibleMoves.size())){
+		while(selection <= 0 || selection >= PieceType.values().length){
 			try {
 				selection = Integer.parseInt(scanLee.nextLine());
 			} catch (NumberFormatException nfe) {
@@ -43,7 +45,7 @@ public class Player {
 				System.out.print("Try Again: ");
 			}
 		}
-		return possibleMoves.get(selection-1);
+		return PieceType.values()[selection-1];
 	}
 	
 	public boolean isWhite(){

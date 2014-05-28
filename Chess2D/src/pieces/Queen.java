@@ -1,9 +1,12 @@
 package pieces;
 
+import javax.swing.ImageIcon;
+
 public class Queen extends Piece {
 
 	public Queen(boolean isWhite) {
 		super(isWhite);
+		icon = (isWhite) ? new ImageIcon("..\\pieceIcons\\wq.png") : new ImageIcon("..\\pieceIcons\\bq.png");
 	}
 
 	public Queen() {

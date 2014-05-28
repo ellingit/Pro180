@@ -1,4 +1,4 @@
-
+(predicate) ? if true : else
 
 ways out: move, block, capture
 King has valid move (can't move into check)

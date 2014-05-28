@@ -1,9 +1,12 @@
 package pieces;
 
+import javax.swing.ImageIcon;
+
 public class Pawn extends Piece {
 
 	public Pawn(boolean isWhite) {
 		super(isWhite);
+		icon = (isWhite) ? new ImageIcon("..\\pieceIcons\\wp.png") : new ImageIcon("..\\pieceIcons\\bp.png");
 	}
 
 	public Pawn() {

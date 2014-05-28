@@ -2,11 +2,14 @@ package pieces;
 
 import java.util.ArrayList;
 
+import javax.swing.ImageIcon;
+
 import board.Location;
 
 public abstract class Piece{
 	protected boolean white, hasMoved;
 	protected ArrayList<Location> availableMoves;
+	protected ImageIcon icon;
 	
 	public abstract boolean validMove(int x, int y);
 	
@@ -31,6 +34,9 @@ public abstract class Piece{
 	}
 	public void setAvailableMoves(ArrayList<Location> moves){
 		availableMoves = moves;
+	}
+	public ImageIcon getIcon(){
+		return icon;
 	}
 	
 	@Override

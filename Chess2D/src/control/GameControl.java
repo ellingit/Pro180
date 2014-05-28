@@ -4,16 +4,21 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import pieces.King;
+import pieces.Knight;
+import pieces.Pawn;
+import pieces.Piece;
+import pieces.PieceType;
+import board.GameBoard;
+import board.Location;
 import exceptions.InvalidMoveException;
-import pieces.*;
-import board.*;
 
 public class GameControl {
 	private GameBoard motherBoard = new GameBoard();
 	private MoveIO moveio;
 	private boolean gameOver = false;
-//	private boolean whiteTurn = true;
 	private Player whitePlayer, blackPlayer;
+	private Player currentPlayer;
 	
 	public GameControl(String filepath){
 		moveio = new MoveIO(filepath);
@@ -23,54 +28,45 @@ public class GameControl {
 		printBoard(motherBoard);
 		whitePlayer = new Player(true);
 		blackPlayer = new Player(false);
+		currentPlayer = whitePlayer;
 	}
 	
 	public void play(){
-		while(!gameOver){ // && moveio.hasNextMove()){
-			takeTurn(whitePlayer);
+		while(!gameOver){
+			takeTurn(currentPlayer);
 			printBoard(motherBoard);
-			takeTurn(blackPlayer);
-			printBoard(motherBoard);
-//			setMoves(motherBoard);
-//			try {
-//				if(isInCheck(motherBoard, whiteTurn)){
-//					String checkMessage = "";
-//					if(whiteTurn) checkMessage += "White ";
-//					else checkMessage += "Black ";
-//					System.out.println(checkMessage + "is in Check!");
-//				}
-//				makeMove(motherBoard, getNextMove());
-//				whiteTurn = !whiteTurn;
-//				printBoard(motherBoard);
-//				setMoves(motherBoard);
-//				if(checkmate(motherBoard, whiteTurn)){
-//					System.err.println("Checkmate!");
-//					System.exit(0);
-//				}
-//			} catch(InvalidMoveException ex) {
-//				System.out.println(ex.getMessage());
-//			}
+			currentPlayer = (currentPlayer == whitePlayer) ? blackPlayer : whitePlayer;
 		}
 	}
+	public GameBoard getContext(){
+		return motherBoard;
+	}
+	
 	private void takeTurn(Player player){
 		setMoves(motherBoard);
-		if(isInCheck(motherBoard, player.isWhite())){
-			String checkMessage = "";
-			if(player.isWhite()) checkMessage += "White ";
-			else checkMessage += "Black ";
-			System.out.println(checkMessage + "is in Check!");
-		}
 		if(checkmate(motherBoard, player.isWhite())){
 			System.err.println("Checkmate!");
-			System.exit(0);
+			gameOver = true;
 		}
-		ArrayList<Location> moveablePieces = getPlayablePositions(motherBoard, player.isWhite());
-		Location moveFrom = player.choosePiece(moveablePieces);
-		Location moveTo = player.chooseMove(motherBoard.getPieceAt(moveFrom).getAvailableMoves());
-		try {
-			makeMove(motherBoard, new Move(moveFrom, moveTo), player.isWhite());
-		} catch(InvalidMoveException ime){
-			System.err.println(ime.getMessage());
+		else if(isInCheck(motherBoard, player.isWhite())){
+			String checkMessage = player.isWhite() ? "White " : "Black ";
+			System.out.println(checkMessage + "is in Check!");
+		}
+		if(!gameOver){
+			ArrayList<Location> moveablePieces = getPlayablePositions(motherBoard, player.isWhite());
+			Location moveFrom = player.promptMenuSelection(moveablePieces, "Select a piece location to move from: ");
+			Location moveTo = player.promptMenuSelection(motherBoard.getPieceAt(moveFrom).getAvailableMoves(), "Select a location to move to: ");
+			try {
+				makeMove(motherBoard, new Move(moveFrom, moveTo), player.isWhite());
+				motherBoard.getPieceAt(moveTo).moved();
+				Location promoteLocation = isUpForPromotion(motherBoard, player.isWhite());
+				if(promoteLocation != null){
+					PieceType promotion = player.choosePieceType();
+					motherBoard.placePiece(promoteLocation, promotion.makePiece(player.isWhite()));
+				}
+			} catch(InvalidMoveException ime){
+				System.err.println(ime.getMessage());
+			}
 		}
 	}
 	
@@ -89,10 +85,7 @@ public class GameControl {
 			}
 		} else System.err.println("Invalid Piece Placement");
 	}
-//	private Move getNextMove(){
-//		return moveio.getMove();
-//	}
-	
+		
 	private boolean makeMove(GameBoard context, Move move, boolean isWhite) throws InvalidMoveException{
 		boolean success = false;
 		if(!isEmpty(context, move.FROM) && context.getPieceAt(move.FROM) != null
@@ -189,6 +182,20 @@ public class GameControl {
 		return mate;
 	}
 	
+	private Location isUpForPromotion(GameBoard context, boolean testingWhite){
+		Location promoteable = null;
+		GameBoard.boardIterator iterator = context.new boardIterator();
+		while(promoteable == null && iterator.hasNext()){
+			Piece piece = iterator.next();
+			if(piece instanceof Pawn){
+				if(iterator.getPieceLocation().Y == context.getBoardSize()-1 || iterator.getPieceLocation().Y == 0){
+					promoteable = iterator.getPieceLocation();
+				}
+			}
+		}
+		return promoteable;
+	}
+	
 	public ArrayList<Location> getPlayablePositions(GameBoard context, boolean isWhite){
 		ArrayList<Location> locations = new ArrayList<>();
 		GameBoard.boardIterator iterator = context.new boardIterator();
@@ -214,7 +221,7 @@ public class GameControl {
 		}
 		context.getPieceAt(from).setAvailableMoves(moves);
 	}
-	private void setMoves(GameBoard context){
+	public void setMoves(GameBoard context){
 		GameBoard.boardIterator iterator = context.new boardIterator();
 		while(iterator.hasNext()){
 			Piece piece = iterator.next();
@@ -223,8 +230,7 @@ public class GameControl {
 			}
 		}
 	}
-	
-	
+		
 	private void printBoard(GameBoard context){
 		GameBoard.boardIterator iterator = context.new boardIterator();
 		int count = 1;
@@ -238,4 +244,5 @@ public class GameControl {
 		}
 		System.out.println();
 	}
+
 }

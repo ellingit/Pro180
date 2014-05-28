@@ -1,9 +1,12 @@
 package pieces;
 
+import javax.swing.ImageIcon;
+
 public class Rook extends Piece {
 
 	public Rook(boolean isWhite) {
 		super(isWhite);
+		icon = (isWhite) ? new ImageIcon("..\\pieceIcons\\wr.png") : new ImageIcon("..\\pieceIcons\\br.png");
 	}
 	public Rook() {
 
